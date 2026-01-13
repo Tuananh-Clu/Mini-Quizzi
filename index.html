@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Triết Học Mác - Lênin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 100%;
+            min-height: 100vh;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 600px;
+                margin: 0 auto;
+                box-shadow: 0 0 50px rgba(0,0,0,0.2);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-count {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .score-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4ade80;
+            transition: width 0.3s ease;
+        }
+
+        /* Start Screen */
+        .start-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .start-screen h1 {
+            font-size: 28px;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .start-screen p {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .chapter-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .chapter-btn {
+            background: white;
+            border: 3px solid #e5e7eb;
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .chapter-btn:hover, .chapter-btn.selected {
+            border-color: #667eea;
+            background: #f3f4f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .chapter-btn.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .chapter-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .chapter-subtitle {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Quiz Screen */
+        .quiz-screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+        }
+
+        .question-container {
+            flex: 1;
+            padding: 30px 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .answers-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 100px;
+        }
+
+        .answer-option {
+            background: white;
+            border: 3px solid #e5e7eb;
+            padding: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.4s ease;
+            animation-fill-mode: backwards;
+        }
+
+        .answer-option:nth-child(1) { animation-delay: 0.1s; }
+        .answer-option:nth-child(2) { animation-delay: 0.15s; }
+        .answer-option:nth-child(3) { animation-delay: 0.2s; }
+        .answer-option:nth-child(4) { animation-delay: 0.25s; }
+
+        .answer-option:active {
+            transform: scale(0.98);
+        }
+
+        .answer-label {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .answer-text {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .answer-option.correct {
+            border-color: #10b981;
+            background: #d1fae5;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .answer-option.correct .answer-label {
+            background: #10b981;
+        }
+
+        .answer-option.wrong {
+            border-color: #ef4444;
+            background: #fee2e2;
+            animation: shake 0.5s ease;
+        }
+
+        .answer-option.wrong .answer-label {
+            background: #ef4444;
+        }
+
+        .answer-option.disabled {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            background: white;
+            padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: none;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .next-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .next-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Result Screen */
+        .result-screen {
+            display: none;
+            flex: 1;
+            padding: 40px 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .result-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .result-score {
+            font-size: 56px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .result-message {
+            font-size: 24px;
+            color: #1f2937;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+
+        .result-stats {
+            background: #f3f4f6;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-value.correct { color: #10b981; }
+        .stat-value.wrong { color: #ef4444; }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header" id="header" style="display: none;">
+            <div class="header-left">
+                <div class="question-count" id="questionCount">1/10</div>
+            </div>
+            <div class="score-badge" id="scoreBadge">0đ</div>
+        </div>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="start-screen" id="startScreen">
+            <div class="logo">🎓</div>
+            <h1>Triết Học Mác - Lênin</h1>
+            <p>Chọn chương để bắt đầu làm bài</p>
+            
+            <div class="chapter-grid">
+                <div class="chapter-btn" data-chapter="all">
+                    <div class="chapter-title">🎲 Tất cả (Random)</div>
+                    <div class="chapter-subtitle">Trộn ngẫu nhiên các chương</div>
+                </div>
+                <div class="chapter-btn" data-chapter="1">
+                    <div class="chapter-title">📖 Chương I</div>
+                    <div class="chapter-subtitle">CNDV và CNDV biện chứng</div>
+                </div>
+                <div class="chapter-btn" data-chapter="2">
+                    <div class="chapter-title">📖 Chương II</div>
+                    <div class="chapter-subtitle">Phép biện chứng duy vật</div>
+                </div>
+                <div class="chapter-btn" data-chapter="3">
+                    <div class="chapter-title">📖 Chương III</div>
+                    <div class="chapter-subtitle">CNDV lịch sử</div>
+                </div>
+            </div>
+            
+            <button class="start-btn" id="startBtn" disabled>Chọn chương để bắt đầu</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="quiz-screen" id="quizScreen">
+            <div class="question-container" id="questionContainer">
+                <div class="question-text" id="questionText"></div>
+                <div class="answers-grid" id="answersGrid"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar" id="bottomBar">
+            <button class="next-btn" id="nextBtn">Câu tiếp theo →</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="resultScreen">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-score" id="resultScore">0%</div>
+            <div class="result-message" id="resultMessage">Xuất sắc!</div>
+            
+            <div class="result-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Tổng số câu</span>
+                    <span class="stat-value" id="totalQ">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Câu đúng</span>
+                    <span class="stat-value correct" id="correctQ">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Câu sai</span>
+                    <span class="stat-value wrong" id="wrongQ">0</span>
+                </div>
+            </div>
+            
+            <button class="start-btn" onclick="resetQuiz()">Làm lại</button>
+        </div>
+    </div>
+
+    <script>
+        const questionsData = {
+            1: [
+{"id":1,"q":"Triết học ra đời do đâu?","a":["Do ý muốn chủ quan của con người","Do lý tính thế giới quy định.","Do nhu cầu của thực tiễn.","Cả a, b và c"],"c":2},
+{"id":2,"q":"Triết học ra đời khi nào?","a":["Ngay khi xuất hiện con người.","Khi khoa học xuất hiện.","Khi tư duy của con người đạt trình độ cao có khả năng trừu tượng hoá, khái quát hoá, rút ra cái chung qua vô vàn sự kiện riêng lẻ.","Cả a, b và c"],"c":2},
+{"id":3,"q":"Tìm câu trả lời đúng nhất cho câu hỏi: triết học là gì?","a":["Là môn khoa học nghiên cứu về thế giới.","Là môn khoa học nghiên cứu về tư duy.","Là môn khoa học nghiên cứu về những quy luật chung nhất của tự nhiên, xã hội và tư duy.","Cả a, b và c."],"c":2},
+{"id":4,"q":"Đâu là định nghĩa đầy đủ và hợp lý nhất về triết học?","a":["Triết học là hệ thống tri thức của con người về thế giới","Triết học là tri thức lý luận của con người.","Triết học là hệ thống tri thức lý luận của con người về thế giới, về vị trí, vai trò của con người trong thế giới ấy.","Cả a, b và c"],"c":2},
+{"id":5,"q":"Nhận định nào dưới đây là không đúng?","a":["Tự nhiên là đối tượng nghiên cứu của triết học.","Tự nhiên không phải là đối tượng nghiên cứu của triết học.","Tự nhiên là đối tượng nghiên cứu của khoa học tự nhiên và của triết học.","Cả a, b và c."],"c":1},
+{"id":6,"q":"Đâu là định nghĩa đúng về vấn đề cơ bản của triết học?","a":["Vấn đề cơ bản của triết học là vấn đề vật chất là gì, nó tồn tại như thế nào.","Vấn đề cơ bản của triết học là vấn đề ý thức là gì, nó có nguồn gốc từ đâu.","Vấn đề cơ bản của triết học là vấn đề quan hệ giữa tư duy và tồn tại, giữa ý thức và vật chất.","Cả a, b và c"],"c":2},
+{"id":7,"q":"Trong các câu nói sau đây đâu là cách diễn đạt mặt thứ nhất của vấn đề cơ bản của","a":["Cảm giác của con người là hình ảnh chân thực, sinh động về sự vật.","Khái niệm và cảm   giác có quan hệ biện chứng với nhau.","Giữa vật chất và ý thức cái nào có trước, cái nào có sau? cái nào quyết định cái nào? học?","Cả a, b và c"],"c":2},
+{"id":8,"q":"Trong các câu sau, đâu là cách diễn đạt về mặt thứ hai của vấn đề cơ bản của triết","a":["Thế giới vật chất tồn tại khách quan độc lập với ý thức, quyết định sự tồn tại của ý thức.","Các sự vật trong thế giới liên hệ với nhau và luôn vận động phát triển.","Con người có thể nhận thức được thế giới hay không?","Nhận thức cảm tính có những hình thức cơ bản là cảm giác, tri giác, và biểu tượng."],"c":2},
+{"id":9,"q":"Chủ nghĩa duy tâm chủ quan là ?","a":["Thừa nhận vật chất tồn tại độc lập.","Thừa nhận thực thể tinh thần tồn tại độc lập và quy định sự tồn tại của vật chất.","Cho rằng cảm giác và ý thức của con người là cái có trước và tồn tại sẵn có trong con người, mọi sự vật hay thế giới vật chất chỉ là kết quả của sự phức hợp của cảm giác mà thôi.","Cả a, b và c"],"c":2},
+{"id":10,"q":"Vị mặn của muối là do cảm giác của con người quy định. Luận điểm đó thuộc","a":["CNDVSH","CNDVBC","CNDT chủ quan","CNDT khách quan"],"c":2},
+{"id":11,"q":"Không thể khẳng định một vật tồn tại khi không cảm nhận được nó. Đó là quan","a":["CNDV SH","CNDVBC","CNDT khách quan","CNDT chủ quan"],"c":3},
+{"id":12,"q":"Đâu là quan điểm của chủ nghĩa duy vật","a":["Vật chất là tính thứ nhất, ý thức là tính thứ hai","Vật chất có trước, ý thức có sau, vật chất quyết định ý thức","Ý thức tồn tại độc lập, không phụ thuộc vào vật chất","Phương án a và b."],"c":3},
+{"id":13,"q":"Chủ nghĩa duy vật có những hình thức cơ bản nào?","a":["Chủ nghĩa duy vật ngây thơ, chất phác","Chủ nghĩa duy vật siêu hình, máy móc","Chủ nghĩa duy vật biện chứng","Cả a, b và c."],"c":3},
+{"id":14,"q":"Triết học nào dưới đây thuộc các hình thức cơ bản của chủ nghĩa duy vật.","a":["Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy vật tầm thường","Chủ nghĩa duy vật biện chứng","Phương án a và c"],"c":3},
+{"id":15,"q":"Trường phái triết học nào cho ý thức là tính thứ nhất quyết định sự tồn tại của vật","a":["CNDT chủ quan","CNDT khách quan","CNDV","Phương án a và b"],"c":3},
+{"id":16,"q":"Đâu là triết học nhất nguyên?","a":["Vật chất là tính thứ nhất, quyết định sự tồn tại của ý thức.","Vật chất và ý thức song song tồn tại, không cái nào quyết định cái nào.","Ý thức là tính thứ nhất, quyết định sự tồn tại của vật chất.","a và c"],"c":3},
+{"id":17,"q":"Vấn đề cơ bản của triết học là vấn đề nào?","a":["Vấn đề quan hệ giữa tư duy và tồn tại.","Vấn đề quan hệ giữa tự nhiên và xã hội","Vấn đề quan hệ giữa con người và môi trường tự nhiên","Cả a, b và c"],"c":0},
+{"id":18,"q":"Tại sao vấn đề quan hệ giữa tư duy và tồn tại là vấn đề cơ bản của triết học?","a":["Vì nó là nền tảng và điểm xuất phát để giải quyết các vấn đề triết học khác.","Vì Các nhà triết học quy ước với nhau như vậy.","Vì đó là vấn đề xuất hiện ngay khi triết học ra đời.","Cả a, b và c"],"c":0},
+{"id":19,"q":"Có mấy vấn đề cơ bản của triết học?","a":["Một","Ba","Hai","Bốn"],"c":0},
+{"id":20,"q":"Vấn đề cơ bản của triết học gồm mấy mặt?","a":["Ba mặt, đó là: 1) vật chất là gì; 2) ý thức là gì; 3) khả năng nhận thức của con người như thế nào.","Hai mặt, đó là: 1) vật chất quyết định ý thức, hay ngược lai; 2) khả năng nhận thức của con người.","Hai mặt. Đó là 1) Vật chất là gì; 2) ý thức là gì.","Cả a, b và c"],"c":1},
+{"id":21,"q":"Trong các nhận định sau đâu là triết học nhị nguyên","a":["Vật chất và ý thức song song tồn tại, không cái nào quyết định cái nào.","Vật chất tồn tại khách quan, quyết định ý thức.","Ý thức tồn tại khách quan, quyết định sự tồn tại của vật chất.","Cả a, b và c"],"c":0},
+{"id":22,"q":"Đâu là đặc điểm của chủ nghĩa duy vật chất phác","a":["Đồng nhất vật chất với một số dạng vật chất cụ thể.","Viện đến thần linh thượng đế để giải thích thế giới.","Những kết luận dựa trên quan sát trực tiếp, cảm tính chưa có cơ sở khoa học nên còn rất ngây thơ, chất phác.","Phương án a và c"],"c":3},
+{"id":23,"q":"Cho rằng giới tự nhiên và xã hội tồn tại hoàn toàn độc lập với nhau, không quan","a":["CNDVBC","CNDT chủ quan","CNDT khách quan","CNDV siêu hình"],"c":3},
+{"id":24,"q":"Chủ nghĩa duy vật biện chứng xem xét thế giới như thế nào?","a":["Như một cỗ máy khổng lồ, các bộ phận của nó tách rời nhau.","Như một dòng sông trôi đi liên tục, các bộ phận đều đồng nhất với nhau","Thế giới vừa đa dạng vừa thống nhất biện chứng với nhau. Thế giới thống nhất ở tính vật chất của nó","Thế giới vừa đa dạng, vừa thống nhất. Thế giới thống nhất ở tính tồn tại của nó."],"c":2},
+{"id":25,"q":"Trong những nhận định sau, đâu là quan điểm của chủ nghĩa duy tâm khách quan?","a":["Ý niệm về cái nhà tồn tại độc lập, có trước cái nhà cụ thể và quyết định sự tồn tại của cái nhà cụ thể.","Cái nhà tồn tại là do con người cảm nhận được","Sự tồn tại của cái nhà cụ thể là do sự kết hợp các yếu tố vật chất quy định, không phải do 3","Cả a, b và c"],"c":0},
+{"id":26,"q":"Chủ nghĩa duy tâm có mấy loại?","a":["Hai loại","Bốn loại","Ba loại","Một loại"],"c":0},
+{"id":27,"q":"Các loại chủ nghĩa duy tâm giống nhau ở chỗ nào?","a":["Phủ nhận sự tồn tại khách quan của vật chất","Phủ nhận sự tồn tại độc lập của ý thức.","Thừa nhận tính thứ nhất của ý thức, thừa nhận ý thức tinh thần sáng tạo ra thế giới vật nào?","Phương án a và c"],"c":3},
+{"id":28,"q":"Đâu là phương pháp biện chứng","a":["Xem xét sự vật trong trạng thái cô lập, tách rời.","Xem xét sự vật trong sự liên hệ tác động qua lại lẫn nhau","Xem xét sự vật trong trạng thái tĩnh tại, không vận động","Cả a, b và c"],"c":1},
+{"id":29,"q":"Đâu là phương pháp siêu hình","a":["Xem xét sự vật trong trạng thái cô lập, tách rời.","Xem xét sự vật trong sự liên hệ tác động qua lại lẫn nhau","Xem xét sự vật trong trạng thái tĩnh tại, không vận động","a và c"],"c":3},
+{"id":30,"q":"Đâu là các hình thức cơ bản của phép biện chứng?","a":["Phép biện chứng tự phát thời kỳ cổ đại","Phép siêu hình","Phép biện chứng duy tâm","a và c"],"c":3},
+{"id":31,"q":"Đâu là các hình thức cơ bản của phép biện chứng?","a":["Phép biện chứng tự phát thời kỳ cổ đại","Phép biện chứng duy tâm","Phép biện chứng duy vật","Cả a, b và c"],"c":3},
+{"id":32,"q":"Trường phái triết học nào thời kỳ cổ đại nêu ra thuyết nguyên tử?","a":["CNDV","Thuyết nhị nguyên","CNDT","Cả a, b và c"],"c":0},
+{"id":33,"q":"Câu nói: không thể tắm hai lần trong cùng một dòng sông, là của nhà triết học","a":["Xôcrát","Platon","Hêraclít","Đêmôcrít"],"c":2},
+{"id":34,"q":"Sắp xếp các hình thức thế giới quan như thế nào là đúng theo thứ tự thời gian xuất","a":["Huyền thoại - triết học - tôn giáo","Triết học - tôn giáo - huyền thoại.","Huyền thoại - tôn giáo - triết học","Cả a, b và c"],"c":2},
+{"id":35,"q":"Trường phái triết học nào cho rằng nước là cơ sở tồn tại của các sự vật trong thế","a":["CNDV biện chứng","CNDV chất phác 4","CNDV siêu hình","CNDT khách quan"],"c":1},
+{"id":36,"q":"Trường phái triết học nào dưới đây thừa nhận tính thống nhất của thế giới?","a":["Trường phái nhất nguyên luận.","Trường phái nhị nguyên luận.","Thuyết bất khả tri.","Cả ba trường phái trên."],"c":0},
+{"id":37,"q":"Trường phái triết học nào thừa nhận thế giới thống nhất ở yếu tố tinh thần?","a":["Chủ nghĩa duy vật.","Chủ nghĩa duy tâm.","Thuyết bất khả tri.","Cả ba trường phái trên."],"c":1},
+{"id":38,"q":"Chủ nghĩa duy vật biện chứng quan niệm thế nào về tính thống nhất của thế giới?","a":["Tính thống nhất của thế giới là sự tồn tại của nó.","Tính thống nhất của thế giới là yếu tố tinh thần.","Tính thống nhất thực sự của thế giới là ở tính vật chất của nó, điều này được chứng minh bằng sự phát triển lâu dài của triết học và khoa học tự nhiên.","Nhờ có sự phát triển của ý niệm tuyệt đối mà thế giới có sự thống nhất."],"c":2},
+{"id":39,"q":"Tính thống nhất vật chất của thế giới được thể hiện ở đặc điểm nào sau đây?","a":["Chỉ có một thế giới duy nhất và thống nhất là thế giới vật chất","Thế giới vật chất biểu hiện qua nhiều dạng khác nhau và giữa chúng có mối liên hệ với nhau","Thế giới vật chất tồn tại vĩnh viễn, vô hạn và vô tận, không sinh ra và không mất đi","Cả ba phương án trên"],"c":3},
+{"id":40,"q":"Quan niệm nào dưới đây mang tính chất siêu hình?","a":["Vật chất là nước","Vật chất là lửa","Vật chất là nguyên tử","Cả ba phương án trên"],"c":3},
+{"id":41,"q":"Vì sao nói quan niệm của các nhà triết học duy vật thời cổ đại mang tính trực","a":["Vì họ đồng nhất vật chất với vật thể.","Vì họ sử dụng phương pháp quan sát trực tiếp và phỏng đoán","Vì họ không thừa nhận thế giới được tạo thành bởi yếu tố tinh thần, ý thức.","Cả ba phương án trên."],"c":1},
+{"id":42,"q":"Ưu điểm nổi bật trong quan niệm về thế giới của các nhà triết học duy vật thời cổ","a":["Họ giải thích thế giới bắt nguồn từ vật chất","Họ giải thích thế giới bắt nguồn từ ý niệm","Có quan niệm duy vật biện chứng về thế giới","Cả ba ý trên"],"c":0},
+{"id":43,"q":"Ưu điểm nổi bật trong quan niệm về thế giới của các nhà triết học duy vật thế kỷ 5","a":["Họ giải thích thế giới bắt nguồn từ vật chất.","Họ cho rằng nguyên tử là khởi nguyên của thế giới.","Có quan niệm duy vật biện chứng về thế giới.","Cả ba ý trên"],"c":0},
+{"id":44,"q":"Vì sao các nhà triết học duy vật thế kỷ XVII, XVIII lại rơi vào quan điểm siêu hình khi giải thích về khởi nguyên của thế giới","a":["Vì bị ảnh hưởng bởi phương pháp nghiên cứu của khoa học tự nhiên thực nghiệm. Vì bị ảnh hưởng bởi học thuyết nguyên tử thời cổ đại.","Vì họ cố gắng chống lại quan điểm của chủ nghĩa duy tâm.","Cả ba phương án trên."],"c":0},
+{"id":45,"q":" Quan niệm về phạm trù vật chất của các nhà triết học duy vật thế kỷ XVII, XVIII mang tính chất siêu hình vì họ","a":["Đồng nhất vật chất với vật thể.","Coi vận động của vật chất là sự tăng lên thuần tuý về lượng.","Tách rời vật chất với vận động.","Cả ba phương án trên."],"c":3},
+{"id":46,"q":"Phát minh khoa học nào dưới đây chứng minh nguyên tử không phải là hạt nhỏ bé","a":["Định luật bảo toàn và chuyển hoá năng lượng.","Học thuyết tế bào.","Phát hiện ra điện tử.","Tìm ra tia X."],"c":2},
+{"id":47,"q":"Năm 1895, Rơnghen phát hiện ra tia X, điều này có ý nghĩa gì? nhau.","a":["Chứng minh nguyên tử là hạt nhỏ bé không phân chia được.","Chứng minh thế giới được tạo thành bởi những hạt vật chất vô cùng nhỏ bé.","Chứng minh thế giới còn được cấu tạo bởi sóng điện từ.","Chứng minh các dạng vật chất của thế giới có thể bị phân chia thành nhiều phần khác"],"c":2},
+{"id":48,"q":"Những phát minh trong vật lý học cuối thế kỷ XIX, đầu thế kỷ XX có ý nghĩa gì đối với sự ra đời định nghĩa vật chất của Lênin","a":["Chứng minh quan niệm của các nhà triết học duy vật trước Mác là chưa đúng đắn, chưa đầy đủ","Chứng minh vật lý học rơi vào cuộc khủng hoảng.","Tạo điều kiện để chủ nghĩa duy tâm công kích chủ nghĩa duy vật.","Cả ba phương án trên."],"c":0},
+{"id":49,"q":"Trong tác phẩm “Chủ nghĩa duy vật và chủ nghĩa kinh nghiệm phê phán”, Lênin định nghĩa phạm trù vật chất với tư cách là một phạm trù triết học, điều đó có nghĩa gì? ”, Lênin","a":["Vật chất là các dạng vật chất cụ thể của giới tự nhiên","Vật chất là một phạm trù rộng nhất, khái quát nhất","Vật chất là cái đối lập với ý thức","Cả ba phương án trên"],"c":1},
+{"id":50,"q":"Lênin sử dụng phương pháp nào để định nghĩa phạm trù vật chất?","a":["Phương pháp định nghĩa thông qua mặt đối lập","Phương pháp định nghĩa thông thường","Phương pháp so sánh","Cả ba phương pháp trên."],"c":0},
+{"id":51,"q":"Lênin sử dụng phạm trù nào sau đây để định nghĩa phạm trù vật chất?","a":["Giác quan.","Cảm giác (đại diện cho ý thức)","Nhận thức. 6","Cả ba phạm trù trên."],"c":1},
+{"id":52,"q":"Lênin nói: “Vật chất là thực tại khách quan” có nghĩa là gì?","a":["Vật chất là tất cả những gì tồn tại bên ngoài, độc lập với tư duy, ý thức của con người","Vật chất là nguyên tử và chân không","Vật chất là cái được phản ánh trong đầu óc con người","Vật chất là cái cảm giác được"],"c":0},
+{"id":53,"q":"yếu tố nào dưới đây là một biểu hiện của thế giới vật chất?","a":["Đạo đức của con người","Hình ảnh vật chất được tái hiện trong đầu óc con người.","Các quan hệ xã hội mang tính khách quan","Cả ba ý trên"],"c":2},
+{"id":54,"q":"Trong định nghĩa vật chất của Lênin, khi giải quyết mặt thứ nhất của vấn đề cơ thức","a":["Vật chất được tạo ra bởi ý niệm tuyệt đối","Con người có thể nhận thức được thế giới","Vật chất được biểu hiện thông qua các dạng cụ thể và giữa chúng có mối liên hệ, tác động qua lại với nhau","Trong quan hệ với ý thức, vật chất là cái có trước và giữ vai trò quyết định đối với ý"],"c":3},
+{"id":55,"q":"Câu nào dưới đây thể hiện quan niệm cho rằng con người có khả năng nhận thức lệ thuộc vào cảm giác”","a":["“Vật chất là phạm trù triết học”","“Vật chất là thực tại khách quan”","“Vật chất .... được đem lại cho con người trong cảm giác”","“Vật chất .... được cảm giác của chúng ta chép lại, chụp lại, phản ánh và tồn tại không"],"c":3},
+{"id":56,"q":"Yếu tố nào dưới đây không phải là vật chất?","a":["Những thông tin khoa học trên mạng Internet","Quan điểm của con người về CNXH","Quan hệ giữa các thành viên trong trường Đại học Bà Rịa Vũng Tàu được biểu hiện là tồn tại xã hội","Những bí ẩn của giới tự nhiên chưa được con người khám phá"],"c":1},
+{"id":57,"q":"Định nghĩa vật chất của Lênin có ý nghĩa gì?","a":["Khắc phục tính trực quan, siêu hình, máy móc trong quan niệm về vật chất của các nhà triết học duy vật trước Mác","Khắc phục cuộc khủng hoảng trong vật lý học cuối thế kỷ XIX, đầu thế kỷ XX","Phê phán, bác bỏ quan niệm của CNDT và thuyết bất khả tri trong việc giải quyết vấn đề cơ bản của triết học","Cả ba ý trên"],"c":3},
+{"id":58,"q":"Ăngghen cho rằng: vận động là “phương thức tồn tại của vật chất”, điều này có 7","a":["Vận động và vật chất không tách rời nhau","Thế giới vật chất được biểu hiện thông qua quá trình vận động, phát triển của các dạng vật chất","Mọi sự vật, hiện tượng trong thế giới luôn vận động, biến đổi không ngừng","Cả ba phương án trên"],"c":3},
+{"id":59,"q":"Theo Ăng ghen, vận động được hiểu là gì?","a":["Vận động là sự di chuyển vị trí của sự vật trong không gian","Vận động là sự gia tăng số lượng các sự vật","Vận động hiểu theo nghĩa chung nhất bao gồm tất cả mọi sự thay đổi và mọi quá trình diễn ra trong vũ trụ","Cả ba ý trên"],"c":2},
+{"id":60,"q":"Theo quan điểm của CNDVBC, các mệnh đề nào dưới đây là không đúng?","a":["Sự vật muốn vận động thì cần phải có một lực bên ngoài tác động vào nó","Vận động của vật chất biểu hiện rất đa dạng, phong phú, tuỳ vào kết cấu vật chất","Vận động của vật chất là vận động tự thân","Vận động và vật chất gắn liền với nhau"],"c":0},
+{"id":61,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, nguyên nhân nào dẫn đến vận","a":["Do mỗi sự vật, hiện tượng đều chứa đựng các mặt, các yếu tố cấu thành và giữa chúng có sự liên hệ, tác động qua lại với nhau","Do có một lực bên ngoài tác động vào các sự vật, hiện tượng đó.","Cả a và b đều đúng","Cả a và b đều sai"],"c":0},
+{"id":62,"q":"Trong các hình thức vận động sau đây, hình thức nào không bao hàm vận  động","a":["Vận động cơ học","Vận động vật lý","Vận động hoá học","Vận động sinh học"],"c":0},
+{"id":63,"q":"Theo quan điểm của CNDVBC, phát biểu nào dưới đây là không đúng?","a":["Không gian của vật chất là một khoảng không trống rỗng","Không gian là hình thức tồn tại của vật chất, biểu hiện những thuộc tính như: cùng tồn tại và tách biệt, có kết cấu và quảng tính","Không gian gắn liền với vật chất đang vận động","Không gian có ba chiều"],"c":0},
+{"id":64,"q":"Trong lĩnh vực xã hội, không gian của vật chất được biểu hiện như thế nào?","a":["Môi trường tự nhiên mà con người đang sinh sống","Số lượng người đang quan hệ với nhau","Môi trường văn hoá, xã hội mà con người đang hoạt động","Cả ba phương án trên"],"c":2},
+{"id":65,"q":"Phạm trù nào sau đây biểu hiện những thuộc tính như: “độ sâu của sự biến đổi,","a":["Vận động","Không gian","Đứng im","Thời gian"],"c":3},
+{"id":66,"q":"Ăng ghen nói rằng: Sau lao động và đồng thời với lao động là ngôn ngữ, đó là hai","a":["Con người chỉ có thể có ý thức khi anh ta tham gia sản xuất vật chất","Lao động là hoạt động cơ bản của xã hội để kích thích quá trình hình thành, phát triển ý thức con người","Lao động gắn bó chặt chẽ với ngôn ngữ 8","Cả ba ý trên"],"c":1},
+{"id":67,"q":"Lao động có vai trò gì đối với sự hình thành ý thức của con người?","a":["Lao động giúp con người tạo ra nguồn thức ăn giàu chất dinh dưỡng để nuôi dưỡng cơ thể và phát triển bộ óc của mình","Lao động giúp con người biết chế tạo và sử dụng công cụ lao động tác động vào giới tự nhiên theo mục đích của bản thân","Lao động giúp con người hình thành ngôn ngữ","Cả ba ý trên"],"c":3},
+{"id":68,"q":"Ngôn ngữ có vai trò gì đối với sự hình thành ý thức con người?","a":["Giúp con người có khả năng khái quát hoá, trừu tượng hoá","Giúp con người có khả năng suy nghĩ tách khỏi sự vật cảm tính","Giúp con người truyền đạt thông tin thuận lợi","Cả ba ý trên"],"c":3},
+{"id":69,"q":"Trong các ví dụ dưới đây, trường hợp nào không thuộc phạm trù ý thức?","a":["Truyền thống “uống nước nhớ nguồn” của người Việt","Thông tin khoa học trên mạng Internet","Tư tưởng chấp hành pháp luật của người dân Việt Nam","Cả ba ý trên"],"c":1},
+{"id":70,"q":"Thế nào là tính sáng tạo của ý thức?","a":["Trong quá trình phản ánh thế giới vật chất, ý thức giữ lại bản chất của các sự vật, hiện tượng","Trên cơ sở của sự phản ánh sự vật, hiện tượng vào các giác quan, con người ghi nhận nguyên si sự vật, hiện tượng đó","Cả a và b đều đúng","Cả a, b đều sai"],"c":0},
+{"id":71,"q":"Ý thức gồm yếu tố nào?","a":["Tri thức","Tình cảm","Cảm xúc","Tất cả các yếu tố trên"],"c":3},
+{"id":72,"q":"Trong các ví dụ dưới đây, trường hợp nào thuộc vô thức?","a":["Khả năng tự đánh giá, nhận xét bản thân mình","Giấc mơ","Khả năng sử dụng thành thạo các phương pháp nghiên cứu khoa học chuyên ngành","Tất cả các trường hợp trên"],"c":1},
+{"id":73,"q":"Vai trò của vô thức là gì?","a":["Giải toả những ức chế trong hoạt động thần kinh.","Điều khiển hành vi của con người","Giúp con người định hướng các hoạt động của mình","Tất cả các ý trên"],"c":0},
+{"id":74,"q":"Trong các ví dụ dưới đây, trường hợp nào thuộc tiềm thức?","a":["Khả năng tự đánh giá, nhận xét bản thân mình","Giấc mơ","Khả năng sử dụng thành thạo các phương pháp nghiên cứu khoa học chuyên ngành","Cả a, b và c đều đúng"],"c":2},{"id":75,"q":"Quan điểm của CNDVBC về mối quan hệ giữa vật chất và ý thức cho rằng: vật chất có trước, ý thức có sau, vật chất quyết định ý thức, điều đó có ý nghĩa gì trong nhận thức: ","a":["Nhận thức của con người phải xuất phát từ hiện thực khách quan 9","Con người phải dựa vào hiểu biết của mình để tác động vào thế giới, cải tạo thế giới","Con người phải tạo ra các điều kiện vật chất để tác động vào thế giới","Cả ba ý trên"],"c":0}
+],
+            2: [
+
+{"id":1,"q":"Mối liên hệ giữa các sự vật, hiện tượng có tính chất gì?","a":["Khách quan, tiền định.","Chủ quan, phổ biến. Khách quan, phổ biến, đa dạng","Cả a, b và đều sai"],"c":1},
+{"id":2,"q":"Những mối liên hệ (MLH) nào giữ vai trò quyết định sự vận động, phát triển của sự","a":["MLH khách quan và chủ quan.","MLH bên ngoài.","MLH bên trong.","MLH cả bên trong lẫn bên ngoài."],"c":2},
+{"id":3,"q":"Quan niệm triết học mácxít coi phát triển là gì?","a":["Là sự biến đổi cả về chất của sự vật","Là sự tăng hay giảm về số lượng.","Là sự thay đổi luôn tiến bộ.","Là sự vận động từ thấp đến cao, từ đơn giản đến phức tạp."],"c":3},
+{"id":4,"q":"Phát triển có tính chất gì?","a":["Khách quan, phổ biến, đa dạng","Quy ước, phổ biến. Tiền định, khách quan.","Chủ quan, phổ biến."],"c":0},
+{"id":5,"q":"Khi xem xét sự vật, quan điểm toàn diện yêu cầu điều gì? những mối liên hệ không cơ bản, không quan trọng.","a":["Phải nhấn mạnh mọi yếu tố, mọi mối liên hệ của sự vật.","Phải coi các yếu tố, các mối liên hệ của sự vật là ngang nhau.","Phải nhận thức sự vật như một hệ thống chỉnh thể bao gồm những mối liên hệ qua lại giữa các yếu tố của nó cũng như giữa nó với các sự vật khác.","Phải xem xét các yếu tố, các mối liên hệ cơ bản, quan trọng và bỏ qua những yếu tố,"],"c":2},
+{"id":6,"q":"Khi xem xét sự vật, quan điểm phát triển yêu cầu điều gì?","a":["Phải xem xét sự vật trong sự vận động, phát triển của chính nó.","Phải thấy được sự vật sẽ như thế nào trong tương lai.","Phải thấy được sự tiến bộ mà không cần xem xét những bước thụt lùi của sự vật.","Cả a, b và c  đều đúng."],"c":0},
+{"id":7,"q":"Quan điểm toàn diện đối lập với quan điểm gì? 10","a":["Quan điểm chiết trung.","Quan điểm ngụy biện.","Quan điểm phiến diện.","Cả a, b và c đều đúng."],"c":2},
+{"id":8,"q":"Quan điểm phát triển đối lập với quan điểm gì?","a":["Quan điểm bảo thủ, định kiến.","Quan điểm toàn diện.","Quan điểm lịch sử - cụ thể.","Quan điểm chủ quan, duy ý chí."],"c":0},
+{"id":9,"q":"Khi đánh giá một con người, quan điểm toàn diện đòi hỏi điều gì? ảnh hưởng đến sự phát triển của họ mà đánh giá.","a":["Phải đặc biệt nhấn mạnh một mặt nào đó, bỏ qua những mặt còn lại.","Phải xuất phát từ mục đích và lợi ích của họ mà đánh giá.","Phải đặt họ vào những điều kiện, thời đại của mình mà đánh giá.","Phải đặt họ trong những mối quan hệ với những người khác, với những việc khác có thể ảnh hưởng đến sự phát triển của họ mà đánh giá. "],"c":3},
+{"id":10,"q":"Trường phái triết học nào coi phát triển chỉ là sự thay đổi về lượng?","a":["Duy vật siêu hình.","Duy tâm khách quan.","Duy tâm chủ quan.","Duy vật biện chứng."],"c":0},
+{"id":11,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng về chất của sự vật","a":["Chất của sự vật tồn tại khách quan bên ngoài sự vật, không phụ thuộc vào ý thức của con người","Chất của sự vật do cảm giác của con người quyết định"," Chất là phạm trù triết học dùng để chỉ tính quy định khách quan vốn có của sự vật, hiện tượng, là sự thống nhất hữu cơ của những thuộc tính, những yếu tố cấu thành sự vật, hiện tượng, nói lên sự vật, hiện tượng đó là gì, phân biệt nó với các sự vật, hiện tượng khác ","Chất của sự vật là thuộc tính của sự vật"],"c":2},
+{"id":12,"q":"Khẳng định có \"chất\" thuần tuý tồn tại khách quan bên ngoài sự vật là quan điểm của trường phái triết học nào? ","a":["Chủ nghĩa duy vật biện chứng.","Chủ nghĩa duy tâm chủ quan.","Chủ nghĩa duy vật siêu hình.","Chủ nghĩa duy tâm khách quan"],"c":3},
+{"id":13,"q":"Khẳng định không có chất thuần tuý tồn tại mà chỉ có sự vật có chất, hơn nữa sự vật có vô vàn chất mới tồn tại. Đó là quan điểm của ai và thuộc trường phái triết học nào? ","a":["Phơ-bách, chủ nghĩa duy vật","Ăngghen, CNDV biện chứng","Hêghen, chủ nghĩa duy tâm"],"c":1},
+{"id":14,"q":"Cho rằng lượng của sự vật là do cảm giác của con người quyết định, đó là quan điểm của trường phái triết học nào? ","a":["Triết học duy vật biện chứng.","Triết học duy tâm chủ quan","Triết học duy tâm khách quan","Triết học duy vật siêu hình."],"c":1},
+{"id":15,"q":"Cho rằng ý thức chúng ta kết hợp hai mặt đối lập bất kỳ đều tạo thành mâu thuẫn biện chứng là khẳng định của triết học nào? ","a":["CNDVBC","Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy tâm"],"c":2},
+{"id":16,"q":"Triết học nào cho rằng mâu thuẫn là một hiện tượng khách quan và phổ biến của thế giới vật chất? ","a":["CNDV siêu hình","CNDVBC","CNDT chủ quan","CNDT khách quan"],"c":1},
+{"id":17,"q":"Đâu là quan niệm của chủ nghĩa duy tâm về mâu thuẫn","a":["Không tồn tại mâu thuẫn trong các sự vật một cách khách quan","Mâu thuẫn của sự vật là biểu hiện mâu thuẫn của lý tính thế giới","Mâu thuẫn của sự vật tồn tại khách quan trong sự vật, do sự kết hợp các mặt đối lập của bản thân sự vật","Phương án a và b"],"c":3},
+{"id":18,"q":"Phủ định biện chứng có tính chất gì?","a":["Tính khách quan","Có tính kế thừa","Cả a và b đều đúng","Cả a, b đều sai"],"c":2},
+{"id":19,"q":" Cái cũ không bị xoá bỏ hoàn toàn mà được bảo tồn trong cái mới dưới dạng cải biến đi, đó là tính chất gì của phủ định biện chứng? ","a":["Tính khách quan","Tính Phức tạp","Tính kế thừa","Tính chu kỳ"],"c":2},
+{"id":20,"q":"Quy luật nào trong các quy luật của phép biện chứng duy vật cho biết phương thức của sự vận động, phát triển? ","a":["Quy luật mâu thuẫn","Quy luật chuyển hoá từ những sự thay đổi về lượng dẫn đến sự thay đổi về chất và ngược lại","Quy luật phủ định của phủ định","Cả a, b và c"],"c":1},
+{"id":21,"q":" Quy luật nào trong các quy luật của phép biện chứng duy vật cho biết nguồn gốc của sự vận động, phát triển? ","a":["Quy luật mâu thuẫn","Quy luật chuyển hoá từ những sự thay đổi về lượng dẫn đến sự thay đổi về chất và ngược lại.","Quy luật phủ định của phủ định","Cả a, b và c"],"c":0},
+{"id":22,"q":"Quy luật nào trong các quy luật của phép biện chứng duy vật cho biết khuynh hướng của sự vận động, phát triển? ","a":["Quy luật mâu thuẫn","Quy luật chuyển hoá từ những sự thay đổi về lượng dẫn đến sự thay đổi về chất và ngược lại.","Quy luật phủ định của phủ định","Cả a, b và c"],"c":2},
+{"id":23,"q":"Quy luật của phép biện chứng tác động trong những lĩnh vực nào sau đây?","a":["Tự nhiên","Tư duy","Xã hội","Cả a, b, và c"],"c":3},
+{"id":24,"q":"Trong những nhận định sau, đâu là nhận định sai?","a":["Quy luật tự nhiên, xã hội và tư duy đều tồn tại khách quan","Quy luật tự nhiên và xã hội là khách quan, còn quy luật tư duy là chủ quan","Biện chứng chủ quan là phản ánh biện chứng khách quan","Cả a, b và c"],"c":1},
+{"id":25,"q":"Đặc điểm quan trọng nhất của quy luật phủ định của phủ định là gì?","a":["Tính khách quan","Tính kế thừa 12","Tính phổ biến","Tính lặp lại cái ban đầu trên cơ sở mới"],"c":3},
+{"id":26,"q":"Những quy luật của phép biện chứng không thể đưa từ bên ngoài vào giới tự nhiên, mà là phát hiện ra chúng trong giới tự nhiên và rút ra từ giới tự nhiên. Đó là luận điểm của  ","a":["CNDVBC","CNDVSH","CNDT khách quan","CNDT chủ quan"],"c":0},
+{"id":27,"q":"Luận điểm sau thuộc lập trường triết học nào: Quy luật trong các khoa học là sự sáng tạo của con người và được áp dụng vào tự nhiên và xã hội ? ","a":["Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật siêu hình"],"c":1},
+{"id":28,"q":"Điền tập hợp từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm chất: Chất là phạm trù triết học dùng để chỉ ... (1) ... khách quan ... (2) ... là sự thống nhất hữu cơ những thuộc tính làm cho sự vật là nó chứ không là cái khác","a":["(1) Tính quy định, (2) vốn có của sự vật","(1) mối liên hệ, (2) của các sự vật","(1) các nguyên nhân,  (2) của các sự vật","Cả a, b và c"],"c":0},
+{"id":29,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là không đúng? ","a":["Chất là tính quy định vốn có của sự vật.","Chất là tổng hợp hữu cơ các thuộc tính của sự vật nói lên sự vật là cái gì.","Chất đồng nhất với thuộc tính","Cả a, b và c"],"c":2},
+{"id":30,"q":"Nhận định nào là đúng trong số các nhận định sau?","a":["Chất đồng nhất với thuộc tính","Chất hoàn toàn khác thuộc tính","Chất và thuộc tính phân biệt với nhau một cách tương đối","Cả a, b và c"],"c":2},
+{"id":31,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Thuộc tính của sự vật là những đặc tính vốn có của sự vật.","Thuộc tính của sự vật bộc lộ thông qua sự tác động giữa các sự vật","Thuộc tính của sự vật không phải là cái vốn có của sự vật","Cả a, b và c"],"c":2},
+{"id":32,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Chất tồn tại khách quan bên ngoài sự vật","Chất tồn tại khách quan gắn liền với sự vật","Không có chất thuần tuý bên ngoài sự vật","Cả a, b và c"],"c":0},
+{"id":33,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Mỗi sự vật có nhiều thuộc tính.","Mỗi thuộc tính biểu hiện một mặt chất của sự vật.","Mỗi thuộc tính có thể đóng vai trò là tính quy định về chất trong một quan hệ nhất định.","Mỗi sự vật chỉ có một tính quy định về chất"],"c":3},
+{"id":34,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Không có chất thuần tuý tồn tại bên ngoài sự vật","Chỉ có sự vật có chất mới tồn tại","Chỉ có sự vật có vô vàn chất mới tồn tại","Sự vật và chất hoàn toàn đồng nhất với nhau"],"c":3},
+{"id":35,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là đúng? ","a":["Chất của sự vật được biểu hiện thông qua thuộc tính của sự vật","Mọi thuộc tính đều biểu hiện chất của sự vật","Thuộc tính thay đổi, luôn làm cho chất của sự vật thay đổi","Cả a, b và c"],"c":0},
+{"id":36,"q":"Luận điểm sau đây thuộc lập trường triết học nào: \"Chất của sự vật tồn tại do phương pháp quan sát sự vật của con người quyết định\" ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật siêu hình","Cả a, b và c"],"c":1},
+{"id":37,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng","a":["Chất là cái vốn có của sự vật, tồn tại khách quan trong sự vật","Chất của sự vật phụ thuộc vào cách xem xét của con người, do vậy không tồn tại khách quan mà do ý muốn chủ quan con người quyết định","Chất của sự vật tồn tại khách quan trước khi sự vật tồn tại","Cả a, b và c"],"c":0},
+{"id":38,"q":"Đâu là quan điểm của chủ nghĩa duy tâm chủ quan","a":["Chất là cái vốn có của sự vật, tồn tại khách quan trong sự vật.","Chất của sự vật phụ thuộc vào cách xem xét của con người, do vậy không tồn tại khách quan mà do ý muốn chủ quan con người quyết định","Chất của sự vật tồn tại khách quan trước khi sự vật tồn tại","Cả a, b và c"],"c":1},
+{"id":39,"q":"Đâu là quan điểm của chủ nghĩa duy tâm khách quan","a":["Chất là cái vốn có của sự vật, tồn tại khách quan trong sự vật","Chất của sự vật phụ thuộc vào cách xem xét của con người, do vậy không tồn tại khách quan mà do ý muốn chủ quan con người quyếtt định","Chất của sự vật tồn tại khách quan trước khi sự vật tồn tại","Cả a, b và c"],"c":2},
+{"id":40,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Chất của sự vật phụ thuộc vào số lượng các yếu tố tạo thành sự vật","Chất của sự vật phụ thuộc vào phương thức kết hợp các yếu tố của sự vật","Mọi sự thay đổi phương thức kết hợp các yếu tố của sự vật, đều không làm cho chất của sự vật thay đổi","Cả a, b và c"],"c":2},
+{"id":41,"q":"Luận điểm sau đây thuộc lập trường triết học nào: Chất tồn tại khách quan trước khi sự vật tồn tại, quyết định đến sự tồn tại của sự vật ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy vật biện chứng"],"c":0},
+{"id":42,"q":" Luận điểm sau đây thuộc lập trường triết học nào: Chất của sự vật phụ thuộc vào góc độ xem xét của con người, vậy chất của sự vật là cái do ý muốn con người quyết định.","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy vật biện chứng"],"c":1},
+{"id":43,"q":"Luận điểm sau đây thuộc lập trường triết học nào: Trong mọi quan hệ, mọi cách xem xét thì chất, lượng và thuộc tính để phân biệt hoàn toàn với nhau, không thể chuyển hoá cho nhau ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy vật biện chứng"],"c":2},
+{"id":44,"q":"Điền tập hợp từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm lượng: Lượng là phạm trù triết học dùng để chỉ...(1) ... của sự vật về mặt ...(2) ... của sự vận động và phát triển cũng như các thuộc tính của sự vật. ","a":["(1) tính quy định vốn có,(2) số lượng,quy mô, trình độ, nhịp điệu","(1) mối liên hệ và phụ thuộc,   (2) bản chất bên trong.","(1) mức độ quy mô,    (2) chất lượng, phẩm chất.","Cả a, b và c"],"c":0},
+{"id":45,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng thể hiện trong những nhận định sau","a":["Lượng là cái vốn có của sự vật, không phụ thuộc vào ý chí của con người","Lượng của sự vật do cảm giác của con người xác định, không tồn tại khách quan","Lượng của sự vật tồn tại trước sự vật","Cả a, b và c"],"c":0},
+{"id":46,"q":"Đâu là quan điểm của chủ nghĩa duy tâm chủ quan thể hiện trong những nhận định sau ","a":["Lượng là cái vốn có của sự vật, không phụ thuộc vào ý chí của con người.","Lượng của sự vật do cảm giác của con người xác định, không tồn tại khách quan","Lượng của sự vật tồn tại trước sự vật","Cả a, b và c"],"c":1},
+{"id":47,"q":"Đâu là quan điểm của chủ nghĩa duy tâm khách quan thể hiện trong những nhận định sau","a":["Lượng là cái vốn có của sự vật, không phụ thuộc vào ý chí của con người.","Lượng của sự vật do cảm giác của con người xác định, không tồn tại khách quan.","Lượng của sự vật tồn tại trước sự vật","Cả a, b và c"],"c":2},
+{"id":48,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Lượng là tính quy định vốn có của sự vật","Lượng nói lên quy mô, trình độ phát triển của sự vật","Lượng phụ thuộc vào ý chí của con người","Lượng tồn tại khách quan gắn liền với sự vật"],"c":2},
+{"id":49,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Chất và lượng của sự vật đều tồn tại khách quan","Không có chất lượng thuần tuý tồn tại bên ngoài sự vật 15","Sự phân biệt giữa chất và lượng phụ thuộc vào ý chí của con người","Sự phân biệt giữa chất và lượng của sự vật có tính chất tương đối"],"c":2},
+{"id":50,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Sự vật nào cũng là sự thống nhất giữa mặt chất và lượng","Tính quy định về chất nào của sự vật cũng có tính quy định về lượng tương ứng","Tính quy định về chất không có tính ổn định","Tính quy định về lượng nói lên mặt thường xuyên biến đổi của sự vật"],"c":2},
+{"id":51,"q":"Theo quan điểm của CNDVBC luận điểm nào sau đây là đúng?","a":["Độ là phạm trù chỉ sự biến đổi của lượng","Độ là phạm trù chỉ sự biến đổi của chất","Độ là phạm trù triết học chỉ giới hạn biến đổi của lượng, trong đó chưa làm thay đổi chất của sự vật","Cả a, b và c"],"c":2},
+{"id":52,"q":"Giới hạn từ 0oC đến 100oC được gọi là gì trong quy luật lượng - chất?","a":["Độ","Lượng","Chất","Bước nhảy"],"c":0},
+{"id":53,"q":"Khi nước chuyển từ trạng thái lỏng sang trạng thái khí tại 100oC được gọi là gì trong quy luật lượng - chất? ","a":["Độ","Bước nhảy","Điểm nút","Tiệm tiến"],"c":2},
+{"id":54,"q":"Trong một mối quan hệ nhất định cái gì xác định sự vật?","a":["Tính quy định về lượng","Tính quy định về chất","Thuộc tính của sự vật","Cả a, b và c"],"c":1},
+{"id":55,"q":"Tính quy định nói lên sự vật trong một mối quan hệ nhất định nào đó, gọi là gì? Bước nhảy","a":["Chất","Độ","Lượng"],"c":0},
+{"id":56,"q":"Tính quy định nói lên quy mô, trình độ phát triển của sự vật trong một mối quan hệ nhất định được gọi là gì? ","a":["Chất","Lượng","Độ","Điểm nút"],"c":1},
+{"id":57,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Trong giới hạn của độ sự thay đổi của lượng chưa làm cho chất của sự vật biến đổi","Trong giới hạn của độ sự thay đổi của lượng đều đưa đến sự thay đổi về chất của sự vật","Chỉ khi lượng đạt đến giới hạn của độ mới làm cho chất của sự vật thay đổi","Cả a, b và c"],"c":1},
+{"id":58,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Không phải mọi sự biến đổi của lượng đều đưa đến sự biến đổi của chất.","Sự thay đổi của lượng phải đạt đến một giới hạn nhất định mới làm cho chất của sự vật thay đổi.","Mọi sự thay đổi của lượng đều đưa đến sự thay đổi về chất của sự vật","Cả a, b và c"],"c":2},
+{"id":59,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là đúng?","a":["Sự biến đổi về chất là kết quả sự biến đổi về lượng của sự vật","Không phải sự biến đổi về chất nào cũng là kết quả của sự biến đổi về lượng","Sự biến đổi về chất hoàn toàn không liên quan gì đến sự thay đổi của lượng 16","Cả a, b và c"],"c":0},
+{"id":60,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là đúng?","a":["Phát triển của sự vật chỉ bao hàm sự thay đổi về lượng","Phát triển của sự vật chỉ bao hàm sự thay đổi về chất","Quá trình phát triển của sự vật là quá trình chuyển hoá từ sự thay đổi dần dần về lượng sang sự thay đổi về chất và ngược lại","Cả a, b và c"],"c":2},
+{"id":61,"q":"Câu ca dao: Một cây làm chẳng nên non - Ba cây chụm lại nên hòn núi cao,  Thể hiện nội dung quy luật nào của phép biện chứng duy vật? ","a":["Quy luật mâu thuẫn","Quy luật phủ định của phủ định","Quy luật chuyển hoá từ những sự thay đổi về lượng dẫn đến sự thay đổi về chất và ngược lại","Cả a, b và c"],"c":2},
+{"id":62,"q":"Trong hoạt động thực tiễn sai lầm của sự chủ quan, nóng vội là do không tôn trọng quy luật nào?","a":["Quy luật mâu thuẫn","Quy luật phủ định của phủ định","Quy luật lượng - chất","Cả a, b và c"],"c":2},
+{"id":63,"q":"Trong hoạt động thực tiễn sai lầm của trì trệ bảo thủ là do không tôn trọng quy luật nào của phép biện chứng duy vật? ","a":["Quy luật lượng - chất","Quy luật phủ định của phủ định","Quy luật mâu thuẫn","Cả a, b và c"],"c":0},
+{"id":64,"q":"Lênin nói quy luật mâu thẫn có vị trí như thế nào trong phép biện chứng duy vật?","a":["Là hạt nhân của phép biện chứng duy vật, vạch ra nguồn gốc bên trong của sự vận động và phát triển","Vạch ra xu hướng của sự phát triển","Vạch ra cách thức của sự phát triển","Cả a, b và c"],"c":0},
+{"id":65,"q":"Nhận định nào sau đây là sai?","a":["Sự vật là một thể thống nhất không có mâu thuẫn","Hai mặt đối lập nào kết hợp với nhau cũng tạo thành mâu thuẫn","Mâu thuẫn chỉ tồn tại trong tư duy không tồn tại trong hiện thực","Cả a, b, và c"],"c":3},
+{"id":66,"q":"Trong lý luận về mâu thuẫn người ta gọi quá trình đồng hoá và dị hoá trong cơ thể sống là gì? ","a":["Những thuộc tính","Những sự vật","Hai yếu tố","Hai mặt đối lập"],"c":3},
+{"id":68,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Mặt đối lập là những mặt có đặc điểm trái ngược nhau, quan hệ mật thiết với nhau trong 17","Mặt đối lập tồn tại khách quan trong các sự vật","Mỗi mặt đối lập tồn tại riêng biệt, không quan hệ gì với cái đối lập với nó và với sự vật","Mặt đối lập là vốn có của các sự vật, hiện tượng, không do ai sáng tạo ra"],"c":2},
+{"id":69,"q":"Theo quan điểm của CNDVBC các mặt đối lập do đâu mà có?","a":["Do ý thức cảm giác của con người tạo ra.","Do ý niệm tuyệt đối sinh ra","Là cái vốn có của thế giới vật chất, không do ai sáng tạo ra","Cả a, b và c"],"c":2},
+{"id":70,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng, luận điểm nào sau đây là sai?","a":["Các mặt đối lập nằm trong sự liên hệ với nhau, không có mặt đối lập nào tồn tại biệt lập","Không phải lúc nào các mặt đối lập cũng liên hệ với nhau","Các mặt đối lập liên hệ, tác động qua lại với nhau một cách khách quan","Cả a, b và c"],"c":1},
+{"id":71,"q":"Luận điểm nào sau đây là không đúng","a":["Hai mặt đối lập của sự vật liên hệ với nhau tạo thành mâu thuẫn biện chứng","Ghép hai mặt đối lập lại với nhau là được mâu thuẫn biện chứng","Không phải ghép bất kỳ hai mặt đối lập lại với nhau là được mâu thuẫn biện chứng","Cả a, b và c"],"c":1},
+{"id":72,"q":"Luận điểm nào sau đây là đúng","a":["Không có mặt đối lập nào của sự vật tồn tại biệt lập với mặt đối lập của nó","Mỗi mặt đối lập đều tồn tại riêng biệt.","Mặt đối lập không phải luôn luôn tồn tại riêng biệt.","Cả a, b và c."],"c":0},
+{"id":73,"q":"Hai mặt đối lập ràng buộc nhau, tạo tiền đề tồn tại cho nhau triết học gọi là gì?","a":["Sự đấu tranh của hai mặt đối lập","Sự thống nhất của hai mặt đối lập","Sự chuyển hoá của hai mặt đối lập","Cả a, b và c"],"c":1},
+{"id":74,"q":"Theo quan điểm của CNDVBC sự thống nhất của các mặt đối lập có những biểu hiện gì?","a":["Sự cùng tồn tại, nương tựa nhau","Sự đồng nhất, có những điểm chung giữa hai mặt đối lập","Sự tác động ngang bằng nhau.","Cả a, b và c"],"c":0},
+{"id":75,"q":" Luận điểm sau đây thuộc lập trường triết học nào: \"Sự thống nhất của các mặt đối lập loại trừ sự đấu tranh của các mặt đối lập","a":["Chủ nghĩa duy vật siêu hình","Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy tâm biện chứng","Cả a, b và c"],"c":0},
+{"id":76,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng thể hiện trong các nhận định sau:","a":["Sự thống nhất không bao hàm sự đấu tranh giữa các mặt đối lập","Sự thống nhất bao hàm sự đấu tranh giữa các mặt đối lập","Sự thống nhất là sự thỏa hiệp giữa các mặt đối lập","Cả b và c"],"c":3},
+{"id":77,"q":"Đâu là quan điểm của chủ nghĩa duy tâm khách quan thể hiện trong các nhận định sau:","a":["Sự thống nhất và đấu tranh của các mặt đối lập được thực hiện trước, bên ngoài sự vật.","Sự vật chỉ là biểu hiện của quá trình thống nhất và đấu tranh của các mặt đối lập của lý tính thế giới","Cả a và b đều sai","Cả a và b đều đúng"],"c":0},
+{"id":80,"q":"Sự tác động theo xu hướng nào thì được gọi là sự đấu tranh của các mặt đối lập?","a":["Ràng buộc nhau.","Phủ định, bài trừ nhau","Nương tựa nhau","Cả a, b và c"],"c":1},
+{"id":81,"q":"Theo quan điểm của CNDVBC nhận định nào là đúng trong các nhận định sau","a":["Thống nhất là tương đối, đấu tranh là tuyệt đối","Thống nhất là tuyệt đối, đấu tranh là tương đối","Cả a và b đều sai","Cả a, b đều đúng"],"c":0},
+{"id":82,"q":"Theo quan điểm của CNDVBC, đâu là nhận định đúng trong các nhận định sau","a":["Chỉ có thống nhất giữa các mặt đôi lập là động lực của sự vận động và phát triển.","Chỉ có đấu tranh giữa các mặt đối lập là động lực của sự vận động và phát triển.","Thống nhất và đấu tranh giữa các mặt đối lập là động lực của sự vận động và phát triển của sự vật","Cả a, b và c"],"c":2},
+{"id":83,"q":"Lập trường triết học nào cho rằng mâu thuẫn tồn tại là do tư duy, ý thức của con người quyết định","a":["Chủ nghĩa duy vật siêu hình.","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật biện chứng."],"c":1},
+{"id":84,"q":"Quan điểm triết học nào cho rằng mâu thuẫn và quy luật mâu thuẫn là sự vận động của ý niệm tuyệt đối? ","a":["Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật siêu hình","Cả a, b đều đúng"],"c":1},
+{"id":85,"q":"Quan điểm nào sau đây là của CNDVBC?","a":["Mâu thuẫn tồn tại khách quan trong mọi sự vật, hiện tượng, quá trình của tự nhiên, xã hội và tư duy","Mâu thuẫn chỉ tồn tại trong tư duy","Mâu thuẫn chỉ tồn tại trong một số hiện tượng","Cả a, b đều đúng"],"c":0},
+{"id":86,"q":"Trong mâu thuẫn biện chứng các mặt đối lập quan hệ với nhau như thế nào?","a":["Chỉ thống nhất với nhau.","Vừa thống nhất vừa đấu tranh với nhau","Chỉ có mặt đấu tranh với nhau","Cả a, b đều đúng"],"c":1},
+{"id":87,"q":" Trong phép biện chứng duy vật sự thay thế sự vật này bằng sự vật kia (thí dụ: nụ thành hoa, hoa thành quả v.v.) được gọi là gì? ","a":["Mâu thuẫn","Phủ định","Tồn tại","vận động"],"c":1},
+{"id":88,"q":"Sự tự thay thế sự vật này bằng sự vật kia không phụ thuộc vào ý thức con người trong phép biện chứng duy vật được gọi là gì? ","a":["Vận động","Phủ định","Phủ định biện chứng","Phủ định của phủ định"],"c":2},
+{"id":89,"q":"Tôi nói \"bông hoa hồng đỏ\". Tôi lại nói \"bông hoa hồng không đỏ\" để phủ nhận câu nói trước của tôi. Đây có phải là phủ định biện chứng không? ","a":["Không","Phải","Vừa phải vừa không phải","Cả a, b  đều sai"],"c":0},
+{"id":90,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Phủ định biện chứng có tính khách quan","Phủ định biện chứng là kết quả giải quyết những mâu thuẫn bên trong sự vật","Phủ định biện chứng phụ thuộc vào ý thức của con người","Cả a, b, c  đều đúng"],"c":2},
+{"id":91,"q":"Theo quan điểm của CNDVBC luận điểm nào sau đây là sai?","a":["Phủ định biện chứng xoá bỏ cái cũ hoàn toàn","Phủ định biện chứng không đơn giản xoá bỏ cái cũ","Phủ định biện chứng loại bỏ những yếu tố không thích hợp của cái cũ","Phủ định biện chứng giữ lại và cải biến những yếu tố còn thích hợp của cái cũ."],"c":0},
+{"id":92,"q":"Luận điểm sau đây thuộc lập trường triết học nào: \"Cái mới ra đời trên cơ sở phá huỷ hoàn toàn cái cũ","a":["Quan điểm siêu hình","Quan điểm biện chứng duy vật","Quan điểm biện chứng duy tâm","Cả a, b, c  đều đúng"],"c":0},
+{"id":93,"q":"Luận điểm sau đây thuộc lập trường triết học nào: \"Cái mới ra đời trên cơ sở giữ nguyên cái cũ ","a":["Quan điểm biện chứng duy vật","Quan điểm biện chứng duy tâm","Quan điểm siêu hình, phản biện chứng","Cả a, b, c  đều đúng"],"c":2},
+{"id":94,"q":"Luận điểm sau đây thuộc lập trường triết học nào: \"Triết học Mác ra đời trên cơ sở phủ định hoàn toàn các hệ thống triết học trong lịch sử","a":["Quan điểm duy tâm siêu hình","Quan điểm biện chứng duy vật","Quan điểm biện chứng duy tâm","Cả a, b, c  đều đúng"],"c":0},
+{"id":95,"q":"Sự tự phủ định để đưa sự vật dường như quay lại điểm xuất phát ban đầu trong phép biện chứng được gọi là gì? ","a":["Phủ định biện chứng","Phủ định của phủ định","Bước nhảy","Cả a, b, c  đều đúng"],"c":1},
+{"id":96,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Phủ định của phủ định có tính khách quan và kế thừa","Phủ định của phủ định hoàn toàn lặp lại cái ban đầu","Phủ định của phủ định lặp lại cái ban đầu trên cơ sở mới cao hơn","Cả a, b, c  đều đúng"],"c":1},
+{"id":97,"q":"Con đường phát triển của sự vật mà quy luật phủ định của phủ định vạch ra là con đường nào? ","a":["Đường thẳng đi lên","Đường tròn khép kín","Đường xoáy ốc đi lên","Cả a, b, c  đều đúng"],"c":2},
+{"id":98,"q":"Theo quan điểm của CNDVBC luận điểm nào sau đây là sai?","a":["Phủ định của phủ định kết thúc một chu kỳ phát triển của sự vật","Phủ định của phủ định kết thúc sự phát triển của sự vật","Phủ định của phủ định mở đầu một chu kỳ phát triển mới của sự vật","Cả a, b, c  đều đúng"],"c":1},
+{"id":99,"q":"Vị trí của quy luật phủ định của phủ định trong phép biện chứng duy vật?","a":["Chỉ ra nguồn gốc của sự phát triển","Chỉ ra cách thức của sự phát triển","Chỉ ra xu hướng của sự phát triển","Cả a, b và c"],"c":2},
+{"id":100,"q":"Các phạm trù số, hàm số, điểm, đường, mặt là phạm trù của khoa học nào? ","a":["Vật lý","Toán học","Hoá học"],"c":1},
+{"id":101,"q":"Các phạm trù: thực vật, động vật, tế bào, đồng hoá, dị hoá là những phạm trù của khoa học nào ","a":["Toán học","Vật lý học","Sinh vật học","Triết học"],"c":2},
+{"id":102,"q":"Các phạm trù: vật chất, ý thức, vận động, mâu thuẫn, bản chất, hiện tượng là những phạm trù của khoa học nào? ","a":["Kinh tế chính trị học","Luật học","Hoá học","Triết học"],"c":3},
+{"id":103,"q":"Thêm cụm từ nào vào chỗ trống của câu sau để được định nghĩa về phạm trù: \"phạm trù là những ........... phản ánh những mặt, những thuộc tính, những mối liên hệ chung, cơ bản nhất của các sự vật và hiện tượng thuộc một lĩnh vực nhất định","a":["Khái niệm","Mối liên hệ cơ bản nhất","Khái niệm rộng nhất","Gồm b và c"],"c":3},
+{"id":104,"q":"Thêm cụm từ nào vào chỗ trống của câu sau để được định nghĩa phạm trù triết học: \"Phạm trù triết học là những khái niệm chung nhất phản ánh những mặt, những mối liên hệ cơ bản và phổ biến nhất của .....(2)....  hiện thực","a":["Các sự vật của","Toàn bộ thế giới","Một lĩnh vực của","Cả a, b,c  đều đúng"],"c":1},
+{"id":105,"q":"Đâu là quan điểm siêu hình trong các luận điểm sau:","a":["Phạm trù triết học tồn tại độc lập không có liên hệ gì với phạm trù của các khoa học","Phạm trù triết học tồn tại trong mối liên hệ với phạm trù của các khoa học cụ thể","Cả a và b đều sai","Cả a, b  đều đúng"],"c":0},
+{"id":106,"q":"Quan điểm của chủ nghĩa duy vật biện chứng về quan hệ giữa phạm trù triết học và phạm trù của các khoa học cụ thể như thế nào?","a":["Không quan hệ gì với nhau","Là quan hệ giữa cái chung với cái chung","Là quan hệ giữa cái chung với cái riêng","Là quan hệ giữa cái riêng với cái riêng"],"c":2},
+{"id":107,"q":"Trường phái triết học nào cho rằng phạm trù là những thực thể ý niệm tồn tại độc lập với ý thức con người và thế giới vật chất? ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật biện chứng","Cả a, b, c  đều đúng"],"c":0},
+{"id":108,"q":"Trường phái triết học nào cho rằng phạm trù được hình thành trong quá trình hoạt động thực tiễn và hoạt động nhận thức của con người? ","a":["Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật siêu hình thế kỷ XVII - XVIII"],"c":0},
+{"id":109,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng nội dung phạm trù có tính chất gì?","a":["Khách quan","Vừa khách quan, vừa chủ quan","Chủ quan","Cả a, b, c  đều sai"],"c":0},
+{"id":110,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng hình thức của các phạm trù có tính chất gì?","a":["Tính khách quan","Tính chất chủ quan","Cả a và b đều sai","Cả a, b  đều đúng"],"c":1},
+{"id":111,"q":" Thêm cụm từ thích hợp vào chỗ trống của câu sau để được luận điểm của chủ nghĩa duy vật biện chứng về tính chất của các phạm trù: Nội dung của phạm trù có tính ..(1) ..., hình thức của phạm trù có tính...(2).. ","a":["(1) chủ quan, (2) khách quan","(1) chủ quan, (2) chủ quan.","(1) khách quan, (2) chủ quan 22","Cả a, b, c  đều đúng"],"c":2},
+{"id":112,"q":"Quan điểm triết học nào cho rằng các phạm trù hoàn toàn tách rời nhau, không vận động, phát triển? ","a":["Quan điểm siêu hình","Quan điểm duy vật biện chứng","Quan điểm duy tâm biện chứng","Cả a, b, c  đều đúng"],"c":0},
+{"id":113,"q":"Chọn cụm từ thích hợp điền vào chỗ trống của câu sau để được định nghĩa khái niệm cái riêng: \"cái riêng là phạm trù triết học dùng để chỉ ...... ","a":["Một sự vật, một quá trình riêng lẻ nhất định","Một đặc điểm chung của các sự vật","Nét đặc thù của một số các sự vật","Cả a, b, c  đều đúng"],"c":0},
+{"id":114,"q":"Chọn cụm từ thích hợp điền vào chỗ trống của câu sau để được định nghĩa khái niệm cái chung: \"cái chung là phạm trù triết học dùng để chỉ ......., được lặp lại trong nhiều sự vật hay quá trình riêng lẻ. ","a":["Một sự vật, một quá trình","Những mặt, những thuộc tính","Những mặt, những thuộc tính không","Cả a, b, c  đều đúng"],"c":1},
+{"id":115,"q":"Thêm cụm từ vào chỗ trống của câu sau để được định nghĩa khái niệm cái đơn nhất: \"Cái đơn nhất là phạm trù triết học dùng để chỉ.........","a":["Những mặt lặp lại trong nhiều sự vật","Một sự vật riêng lẻ","Những nét, những mặt chỉ có ở một sự vật","Cả a, b, c  đều đúng"],"c":2},
+{"id":116,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng về mối quan hệ giữa cái chung và cái riêng","a":["Chỉ có cái chung tồn tại khách quan và vĩnh viễn","Chỉ có cái riêng tồn tại khách quan và thực sự","Cái riêng và cái chung đều tồn tại khách quan và không tách rời nhau","Cả a, b, c  đều đúng"],"c":2},
+{"id":117,"q":"Đâu là quan điểm của chủ nghĩa duy vật biện chứng về mối quan hệ giữa cái chung và cái riêng","a":["Cái chung tồn tại khách quan, bên ngoài cái riêng","Cái riêng tồn tại khách quan không bao chứa cái chung","Không có cái chung thuần tuý tồn tại ngoài cái riêng, cái chung tồn tại thông qua cái riêng","Cả a, b, c  đều đúng"],"c":2},
+{"id":118,"q":"Trong những luận điểm sau, đâu là luận điểm của chủ nghĩa duy vật biện chứng?","a":["Mỗi con người là một cái riêng, không có gì chung với người khác","Mỗi con người vừa là cái riêng, đồng thời có nhiều cái chung với người khác","Mỗi người chỉ là sự thể hiện của cái chung, không có cái đơn nhất của nó","Cả a, b, c  đều đúng"],"c":1},
+{"id":119,"q":" Thêm cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm nguyên nhân: Nguyên nhân là phạm trù chỉ ....(1).. giữa các mặt trong một sự vật, hoặc giữa các sự vật với nhau gây ra ...(2)..","a":["(1) sự liên hệ lẫn nhau, (2) một sự vật mới","(1) sự thống nhất, (2) một sự vật mới","(1)sự tác động lẫn nhau, (2) một biến đổi nhất định nào đó","Cả a, b, c  đều sai"],"c":2},
+{"id":120,"q":"Thêm cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm kết quả: \"Kết quả là ...(1).. do  ...(2).. lẫn nhau giữa các mặt trong một sự vật hoặc giữa các sự vật với nhau gây ra","a":["(1) mối liên hệ, (2) kết hợp","(1) sự tác động, (2) những biến đổi","(1) những biến đổi xuất hiện, (2) sự tác động","Cả a, b, c  đều sai"],"c":2},
+{"id":121,"q":"Xác định nguyên nhân của sự phát sáng của bóng đèn dây tóc.","a":["Nguồn điện","Dây tóc bóng đèn","Sự tác động giữa dòng điện và dây tóc bóng đèn","Cả a, b, c  đều đúng"],"c":2},
+{"id":122,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng đâu là nguyên nhân của cách mạng vô sản","a":["Sự xuất hiện giai cấp tư sản","Sự xuất hiện nhà nước tư sản","Sự xuất hiện giai cấp vô sản và Đảng của nó","Mâu thuẫn giữa giai cấp tư sản và giai cấp vô sản"],"c":3},
+{"id":123,"q":"Luận điểm sau đây thuộc lập trường triết học nào: Mối liên hệ nhân quả là do ý lý tính thế giới quyết định ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy vật siêu hình"],"c":0},
+{"id":124,"q":"Luận điểm sau đây là thuộc lập trường triết học nào: Mọi hiện tượng, quá trình đều có nguyên nhân tồn tại khách quan không phụ thuộc vào việc chúng ta có nhận thức được điều đó hay không. ","a":["Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật biện chứng","Cả a, b, c  đều đúng"],"c":2},
+{"id":125,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa phạm trù tất nhiên: tất nhiên là cái do ..(1).. của kết cấu vật chất quyết định và trong những điều kiện nhất định nó phải ...(2).. .. chứ không thể khác được","a":["(1) nguyên nhân bên ngoài, (2) xảy ra như thế","(1) những nguyên nhân bên trong, (2) xảy ra như thế","(1) những nguyên nhân bên trong, (2) không xác định được","Cả a, b, c  đều đúng"],"c":1},
+{"id":126,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm ngẫu nhiên: \"Ngẫu nhiên là cái không do ...(1)... kết cấu vật chất quyết định, mà do ...(2)... quyết định","a":["(1) nguyên nhân, (2) hoàn cảnh bên ngoài 24","(1) Mối liên hệ bản chất bên trong, (2) nhân tố bên ngoài","(1) mối liên hệ bên ngoài, (2) mối liên hệ bên trong","Cả a, b, c  đều đúng"],"c":1},
+{"id":127,"q":"Luận điểm nào sau đây là đúng?","a":["Mọi cái chung đều là cái tất yếu","Mọi cái chung  đều không phải là cái tất yếu","Chỉ có cái chung được quyết định bởi bản chất nội tại của sự vật mới là cái tất yếu","Cả a, b, c  đều đúng"],"c":2},
+{"id":128,"q":"Luận điểm sau đây thuộc lập trường triết học nào: Tất nhiên là cái chúng ta biết được nguyên nhân và chi phối được nó ","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy vật siêu hình"],"c":1},
+{"id":129,"q":"Điền tập hợp từ vào chỗ trống của câu sau để được định nghĩa khái niệm nội dung: nội dung là ....   những mặt, những yếu tố, những quá trình tạo nên sự vật ","a":["Sự tác động","Sự kết hợp","Tổng hợp tất cả","Cả a, b, c  đều đúng"],"c":2},
+{"id":130,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa phạm trù hình thức: Hình thức là ...(1)... của sự vật,là hệ thống ...(2)... giữa các yếu tố của sự vật. ","a":["(1) các mặt các yếu tố,   (2) mối liên hệ","(1) phương thức tồn tại và phát triển,  (2) các mối liên hệ tương đối bền vững","(1) tập hợp tất cả những mặt,  (2) mối liên hệ bền vững","Cả a, b, c  đều sai"],"c":1},
+{"id":131,"q":"Điền cụm từ tích hợp vào câu sau để được khái niệm về hình thức: Hình thức là hệ thống ............. giữa các yếu tố của sự vật.","a":["Mối liên hệ tương đối bền vững","Hệ thống các bước chuyển hoá","Mặt đối lập","Mâu thuẫn được thiết lập"],"c":0},
+{"id":132,"q":"Theo quan điểm của chủ nghĩa duy vật biện chứng luận điểm nào sau đây là sai?","a":["Không có hình thức tồn tại thuần tuý mà không chứa đựng nội dung","Nội dung nào cũng tồn tại trong một hình thức nhất định","Nội dung và hình thức hoàn toàn tách rời nhau","Cả a, b, c  đều đúng"],"c":2},
+{"id":133,"q":"Điền cụm từ thích hợp vào câu sau để được định nghĩa khái niệm bản chất: Bản chất là tổng hợp tất cả những mặt, những mối liên hệ ...(1)...bên trong sự vật, quy định sự ...(2)... của sự vật. ","a":["(1) chung,  (2) vận động và phát triển","(1) ngẫu nhiên,  (2) tồn tại và biến đổi","(1) tất nhiên, tương đối ổn định, (2) vận động và phát triển","Cả a, b, c  đều đúng"],"c":2},
+{"id":134,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm hiện tượng: Hiện tượng là ........ của bản chất. ","a":["Cơ sở","Nguyên nhân","Biểu hiện ra bên ngoài","Cả a, b, c  đều đúng"],"c":2},
+{"id":135,"q":"Luận điểm sau đây thuộc lập trường triết học nào: \"Bản chất chỉ là tên gọi trống rỗng, do con người đặt ra, không tồn tại thực","a":["Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy vật biện chứng","Cả a, b, c  đều đúng"],"c":0},
+{"id":136,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm hiện thực: \"Hiện thực là phạm trù triết học chỉ cái .........","a":["Mối liên hệ giữa các sự vật","Chưa có, chưa tồn tại","Hiện có đang tồn tại","Cả a, b, c  đều đúng"],"c":2},
+{"id":137,"q":"Điền cụm từ thích hợp vào chỗ trống của câu sau để được định nghĩa khái niệm khả năng: \"Khả năng là phạm trù triết học chỉ .......... khi có các điều kiện thích hợp","a":["Cái đang có, đang tồn tại","Cái chưa có, nhưng sẽ có","Cái không thể có","Cái tiền đề để tạo nên sự vật mới"],"c":1},
+{"id":138,"q":"Dấu hiệu để phân biệt khả năng với hiện thực là gì?","a":["Sự có mặt và không có mặt trên thực tế","Sự nhận biết được hay không nhận biết được","Sự xác định hay không xác định","Cả a, b, c  đều đúng"],"c":0},
+{"id":139,"q":"Cho nhận thức chỉ là sự phức hợp những cảm giác của con người, đó là quan điểm của","a":["Chủ nghĩa duy tâm khách quan","Chủ nghĩa duy tâm chủ quan","Chủ nghĩa duy vật biện chứng","Chủ nghĩa duy vật siêu hình"],"c":1},
+{"id":140,"q":"Luận điểm nào sau đây là quan điểm của chủ nghĩa duy vật biện chứng về bản chất của nhận thức","a":["Nhận thức là sự phản ánh hiện thực khách quan","Nhận thức là quá trình linh hồn hồi tưởng về thế giới ý niệm","Nhận thức là quá trình phản ánh một cách tích cực và sáng tạo hiện thực khách quan vào trong đầu óc con người và dựa trên cơ sở hoạt động thực tiễn","Cả a, b, c đều sai"],"c":2},
+{"id":141,"q":"Coi thực tiễn là cơ sở chủ yếu và trực tiếp nhất của nhận thức, là động lực, mục đích của nhận thức và là tiêu chuẩn của chân lý. Đây là một trong những nguyên tắc cơ bản của nhận thức luận của:","a":["CNDVBC","CNDV trước Mác","CNDT chủ quan","CNDT khách quan."],"c":0},
+{"id":142,"q":"Thực tiễn được hiểu là hoạt động vật chất của con người. Đó là quan niệm của","a":["CNDV trước Mác"," CNDT","CNDVBC","a và b"],"c":3},
+{"id":143,"q":"Điền tập hợp từ thích hợp vào chỗ trống trong câu sau để được định nghĩa về phạm trù","a":["Vật chất"," Vật chất có mục đích","Tinh thần", " Tinh thần có mục đích"],"c":1},
+{"id":144,"q":"Điền tập hợp từ thích hợp vào chỗ trống trong câu sau để được định nghĩa về phạm trù","a":["Cá nhân "," Lịch sử","Tự giác" ,"Lịch sử - xã hội"],"c":3},
+{"id":145,"q":"Theo quan điểm của CNDVBC có bao nhiêu hình thức hoạt động thực tiễn cơ bản","a":["Có 2 hình thức"," Có 4 hình thức","Có 3 hình thức",                " Có 5 hình thức."],"c":2},
+{"id":146,"q":"Những hình thức cơ bản của hoạt động thực tiễn","a":["Sản xuất vật chất.","Chính trị xã hội","Quan sát và thực nghiệm khoa học"," Cả a, b và c"],"c":3},
+{"id":147,"q":"Trong những hình thức cơ bản của hoạt động thực tiễn, hình thức nào là cơ bản","a":["Sản xuất vật chất"," Quan sát và thực nghiệm khoa học","Chính trị xã hội"," Không có hình thức nào"],"c":0},
+{"id":148,"q":"Hoạt động thực tiễn nào tạo ra của cải thiết yếu có tính quyết định đối với sự tinh tồn","a":["Hoạt động sản xuất vật chất"," Hoạt động Thực nghiệm khoa học","Hoạt động chính trị xã hội"," Cả a, b và c"],"c":0},
+{"id":149,"q":"Vai trò của thực tiễn đối với nhận thức là","a":["Thực tiễn là cơ sở, động lực và mục đích của nhận thức","Thực tiễn là tiêu chuẩn để kiểm tra chân lý","Thực tiễn là hiện thực hoá nhận thức","Phương án a và b"],"c":3},
+{"id":150,"q":"Quan điểm thực tiễn đòi hỏi nhận thức phải","a":["Xuất phát từ thực tiễn "," Coi trọng tổng kết thực tiễn","Đi sâu vào thực tiễn","  Cả a, b và c"],"c":3},
+{"id":151,"q":"Giai đoạn nhận thức nào hình thành nên các cảm giác ở con người","a":["Nhận thức cảm tính "," Nhận thức lý luận","Nhận thức lý tính"," Cả a, b, và c"],"c":0},
+{"id":152,"q":"Giai đoạn nhận thức nào hình thành nên các tri giác","a":["Nhận thức cảm tính","Nhận thức lý luận","Nhận thức lý tính."," Phương án b và c"],"c":0},
+{"id":153,"q":"Biểu tượng là hình thức nhận thức ở giai đoạn nào","a":["Nhận thức lý tính "," Nhận thức cảm tính","Nhận thức khoa học"," Cả a, b và c"],"c":1},
+{"id":154,"q":"Nhận thức cảm tính có những hình thức nào","a":["Cảm giác "," Biểu tượng","Tri giác"," Cả a, b và c"],"c":3},
+{"id":155,"q":"Nhận thức lý tính có những hình thức nào","a":["Khái niệm","Suy luận","Phán đoán","Cả a, b và c"],"c":3},
+{"id":156,"q":"Khái niệm là hình thức nhận thức ở giai đoạn nào","a":["Cảm tính","Trực quan sinh động","Lý tính","Phương án a và b"],"c":2},
+{"id":157,"q":"Phán đoán là hình thức nhận thức ở giai đoạn nào","a":["Cảm tính","Cả a và b","Lý tính","Cả a,b,c đều sai"],"c":2},
+{"id":158,"q":"Suy luận là hình thức nhận thức thuộc giai đoạn nào","a":["Cảm tính","Cả a và b.","Lý tính","Cả a,b,c đều sai"],"c":2},
+{"id":159,"q":"Cảm giác màu sắc, mùi vị và nhiệt độ của sự vật là nhận thức thuộc giai đoạn nào","a":["Giai đoạn nhận thức cảm tính","Cả a và b đều đúng","Giai đoạn nhận thức Lý tính","Cả a,b  đều sai"],"c":0},
+{"id":160,"q":"Nhận thức cảm tính có đặc điểm gì","a":["Phán ánh trực tiếp hiện thực khách quan","Phán ánh được những thuộc tính đa dạng, bên ngoài của sự vật","Chưa phản ánh được mối liên hệ bên trong, bản chất của sự vật","Cả a, b và c"],"c":3},
+{"id":161,"q":"Nhận thức lý tính có những đặc điểm gì","a":["Phán ánh khái quát hiện thực khách quan","Phán ánh gián tiếp hiện thực khách quan","Phán ánh được những mối liên hệ bên trong bản chất của sự vật","Cả a, b và c"],"c":2},
+{"id":162,"q":"Đâu là quan điểm về chân lý của chủ nghĩa duy vật biện chứng","a":["Chân lý là những luận điểm được nhiều người thừa nhận","Chân lý là luận điểm phản ánh đúng hiện thực khách quan và được thực tiễn kiểm nghiệm","Chân lý là những luận điểm của kẻ mạnh","Chân lý là những suy luận chính xác, không có mâu thuẫn"],"c":1},
+{"id":163,"q":"Chân lý có những tính chất gì","a":["Tính khách quan","Tính cụ thể","Tính tương đối và tuyệt đối","Cả a, b và c"],"c":3},{"id":164,"q":"Để đề ra đường lối đúng đắn cho cách mạng Việt Nam, Đảng ta đã căn cứ vào đâu","a":["Điều kiện lịch sử cụ thể của đất nước","Những quan điểm lý luận của chủ nghĩa Mác - Lênin","Những kinh nghiệm của các nước trên thế giới","Cả a, b và c"],"c":3}
+],
+            3: [
+{"id":1,"q":"Bổ sung để được một câu đúng theo quan điểm triết học mácxít: “Sản xuất vật","a":["Con người hiện đại","Con người","Cả con người và động vật cao đẳng","Con người sống trong xã hội tư bản chủ nghĩa"],"c":1},
+{"id":2,"q":"Bổ sung để được một câu đúng theo quan điểm triết học mácxít: “Phương","a":["Quan hệ với tự nhiên.","Tái sản xuất giống loài.","Quan hệ với nhau trong sản xuất.","Thực hiện sản xuất vật chất ở mỗi giai đoạn lịch sử"],"c":3},
+{"id":3,"q":"Sản xuất xã hội là","a":["Sản xuất vật chất","Sản xuất tinh thần","Sản xuất ra chính bản thân con người","Cả a,b và c"],"c":3},
+{"id":4,"q":"Lực lượng sản xuất biểu hiện mối quan hệ (MQH) nào?","a":["MQH giữa các yếu tố vật chất và tinh thần trong hoạt động sản xuất","MQH giữa con người với con người","MQH giữa con người với tự nhiên","MQH giữa con người với tự nhiên và với nhau"],"c":2},
+{"id":5,"q":"Quan hệ sản xuất biểu hiện mối quan hệ nào?","a":["MQH giữa các yếu tố tham gia vào quá trình sản xuất","MQH giữa con người với tự nhiên trong sản xuất","MQH giữa con người với con người trong sản xuất","a, b và C đều đúng"],"c":2},
+{"id":6,"q":"Lực lượng sản xuất bao gồm các yếu tố nào? tượng lao động","a":["Tư liệu sản xuất và người lao động","Tư liệu sản xuất, công cụ lao động và người lao động","Tư liệu sản xuất, công cụ lao động, người lao động và phương tiện lao động","Tư liệu sản xuất, công cụ lao động, người lao động, phương tiện lao động và đối"],"c":3},
+{"id":7,"q":"Yếu tố mang tính cách mạng nhất trong lực lượng sản xuất là gì?","a":["Người lao động","Công cụ lao động","Phương tiện lao động","Tư liệu lao động"],"c":1},
+{"id":8,"q":"Quy luật (QL) xã hội nào giữ vai trò quyết định đối với sự vận động và phát 29","a":["QL về sự phù hợp của quan hệ sản xuất với trình độ phát triển của lực lượng sản xuất","QL tồn tại xã hội quyết định ý thức xã hội","QL cơ sở hạ tầng quyết định kiến trúc thượng tầng.","QL đấu tranh giai cấp"],"c":0},
+{"id":9,"q":"Thực chất của mối quan hệ biện chứng giữa cơ sở hạ tầng và kiến trúc thượng","a":["QH giữa đời sống vật chất và đời sống tinh thần xã hội","QH giữa kinh tế và chính trị","QH giữa các giai cấp có lợi ích đối kháng nhau","QH giữa tồn tại xã hội với ý thức xã hội"],"c":0},
+{"id":10,"q":"Theo quan điểm triết học mácxít, lực lượng sản xuất có thể có những tính","a":["Tính quy mô lớn hay nhỏ.","Tính có tổ chức cao hay thấp.","Tính cá nhân hay tính xã hội.","Tính giản đơn hay phức tạp."],"c":2},
+{"id":11,"q":"Trình độ của lực lượng sản xuất biểu hiện ở chỗ nào?","a":["Nó sản xuất ra cái gì cho xã hội.","Trình độ của người lao động và công cụ lao động; việc tổ chức và phân công lao động.","Khối lượng sản phẩm nhiều hay ít mà xã hội tạo ra.","cả a, b, c  đều đúng."],"c":3},
+{"id":12,"q":"Quan hệ nào có vai trò quyết định trong hệ thống các quan hệ sản xuất?","a":["Quan hệ sở hữu đối với tư liệu sản xuất.","Quan hệ tổ chức, quản lý quá trình sản xuất xã hội.","Quan hệ phân phối sản phẩm do xã hội sản xuất ra.","Cả a, b, c đều sai."],"c":0},
+{"id":13,"q":"Trong mối quan hệ biện chứng giữa lực lượng sản xuất (LLSX) và quan hệ định thuộc về QHSX hay LLSX.","a":["LLSX quyết định QHSX.","QHSX quyết định LLSX.","Không cái nào quyết định cái nào.","Tùy thuộc vào điều kiện cụ thể của nền sản xuất xã hội mà xác định vai trò quyết"],"c":0},
+{"id":14,"q":"Vai trò của quan hệ sản xuất (QHSX) đối với lực lượng sản xuất (LLSX) biểu","a":["QHSX kìm hãm LLSX.","QHSX thúc đẩy LLSX.","QHSX có thể thúc đẩy hay kìm hãm LLSX tuỳ thuộc vào sự phù hợp hay không phù hợp của nó với LLSX.","Lúc đầu, QHSX thúc đẩy LLSX, nhưng sau đó, QHSX kìm hãm LLSX."],"c":2},
+{"id":15,"q":"Cơ sở hạ tầng là khái niệm dùng để chỉ điều gì?","a":["Toàn bộ các quan hệ sản xuất của xã hội hợp thành kết cấu kinh tế của xã hội.","Toàn bộ lực lượng sản xuất của xã hội.","Toàn bộ lực lượng sản xuất và quan hệ sản xuất.","Các công trình được xây dựng phục vụ cho các hoạt động của xã hội"],"c":0},
+{"id":16,"q":"Bổ sung để được một câu đúng theo quan điểm triết học mácxít: “Cơ sở hạ nào?","a":["Vật chất - kỹ thuật","Tinh thần c Kinh tế","Vật chất và kinh tế"],"c":0},
+{"id":17,"q":"Đặc trưng của cơ sở hạ tầng được quy định bởi quan hệ sản xuất (QHSX)","a":["QHSX tàn dư do xã hội trước để lại.","QHSX mầm mống của xã hội mai sau.","Tất cả các QHSX hiện có.","Cả a, b, c đều sai."],"c":3},
+{"id":18,"q":"Kiến trúc thượng tầng là khái niệm dùng để chỉ điều gì? được hình thành trên cơ sở hạ tầng.","a":["Toàn bộ các quan hệ chính trị, pháp quyền hiện tồn trong xã hội.","Toàn bộ các tư tưởng và các tổ chức chính trị, pháp quyền của mọi giai cấp trong xã hội.","Toàn bộ các quan điểm, tư tưởng và các thiết chế xã hội tương ứng được hình thành trên cơ sở hạ tầng.","Toàn bộ các quan điểm, tư tưởng và các thiết chế của giai cấp thống trị trong xã hội"],"c":2},
+{"id":19,"q":"Trong mối quan hệ biện chứng giữa cơ sở hạ tầng (CSHT) và kiến trúc","a":["CSHT quyết định KTTT.","KTTT quyết định CSHT.","Tuỳ thuộc vào thời đại kinh tế cụ thể mà xác định CSHT quyết định KTTT, hay KTTT quyết định CSHT.","Không cái nào quyết định cái nào"],"c":0},
+{"id":20,"q":"Lực lượng sản xuất có vai trò như thế nào trong một hình thái kinh tế - xã","a":["Nền tảng vật chất - kỹ thuật của xã hội.","Bảo vệ trật tự kinh tế của xã hội.","Quy định thái độ và hành vi của con người trong xã hội.","Quy định mọi quan hệ xã hội"],"c":0},
+{"id":21,"q":"Phát triển  bỏ qua chế độ tư bản chủ nghĩa (TBCN) ở nước ta hiện nay được","a":["Không xây dựng quan hệ sản xuất TBCN.","Bỏ qua mọi yếu tố gắn liền với phương thức sản xuất TBCN.","Bỏ qua việc xác lập vai trò thống trị của quan hệ sản xuất TBCN và sự thống trị của giai cấp tư sản.","Bỏ qua sự phát triển lực lượng sản xuất mang tính chất TBCN."],"c":2},
+{"id":22,"q":"Hình thức cộng đồng người đầu tiên trong lịch sử là","a":["Bộ lạc","Thị tộc","Bộ tộc","Dân tộc"],"c":1},
+{"id":23,"q":"Sắp xếp các hình thức cộng đồng người trong lịch sử theo thứ tự từ sớm","a":["Thị tộc -> bộ tộc -> bộ lạc -> dân tộc","Bộ lạc -> bộ tộc -> thị tộc -> dân tộc","Thị tộc -> bộ lạc -> bộ tộc -> dân tộc","Thị tộc -> bộ lạc -> dân tộc -> bộ tộc"],"c":2},
+{"id":24,"q":"Sự khác nhau về địa vị của giai cấp trong hệ thống sản xuất là do cái gì","a":["Do quan hệ đối với việc sở hữu tư liệu sản xuất","Do vai trò trong tổ chức, quản lý sản xuất và lao động xã hội","Do phương thức và quy mô thu nhập những sản phẩm lao động của xã hội. 31","Cả a, b và c"],"c":0},
+{"id":25,"q":"Nguyên nhân quyết định trực tiếp cho sự ra đời giai cấp là gì?","a":["Năng suất lao động cao có sản phẩm dư thừa","Sự phân công lao động xã hội đã phát triển","Chế độ tư hữu về tư liệu sản xuất","Công cụ bằng kim loại đã xuất hiện"],"c":2},
+{"id":26,"q":"Giai cấp đối kháng đầu tiên trong lịch sử xuất hiện trong xã hội nào?","a":["Xã hội chiếm hữu nô lệ","Xã hội phomg kiến","Xã hội tư bản","Xã hội cộng sản nguyên thuỷ"],"c":0},
+{"id":27,"q":"Đâu là giai cấp cơ bản của một xã hội có giai cấp trong lịch sử?","a":["Những giai cấp gắn với phương thức sản xuất đang giữ địa vị thống trị.","Những giai cấp gắn với tàn dư của phương thức sản xuất cũ còn lại trong xã hội đương thời","Những giai cấp gắn với nhiều phương thức sản xuất trong lịch sử","Cả a.b.c đều sai"],"c":0},
+{"id":28,"q":"Trong xã hội chiếm hữu nô lệ, giai cấp nào là giai cấp cơ bản?","a":["Giai cấp chủ nô","Giai cấp nô lệ","Cả a và b đều đúng","Cả a và b đều sai"],"c":2},
+{"id":29,"q":"Trong xã hội phong kiến giai cấp nào là giai cấp cơ bản","a":["Địa chủ phong kiến và nông dân","Chủ nô và nô lệ","Tư sản và vô sản","Cả a, b và c"],"c":0},
+{"id":30,"q":"Trong xã hội tư bản giai cấp cơ bản là?","a":["Giai cấp tư sản và giai cấp địa chủ","Giai cấp vô sản","Giai cấp tư sản và vô sản","Cả a, b và c"],"c":2},
+{"id":31,"q":"Giai cấp nào tiêu biểu cho bản chất của chế độ kinh tế - xã hội của xã hội","a":["Giai cấp tư sản và vô sản","Giai cấp tư sản","Giai cấp vô sản","Tầng lớp trí thức"],"c":1},
+{"id":32,"q":"Thực chất của cuộc đấu tranh giai cấp là gì?","a":["Là cuộc đấu tranh giữa những bộ phận nhân dân này chống lại bộ phận nhân dân khác.","Là cuộc đấu tranh giành chính quyền nhà nước","Là cuộc đấu tranh giải quyết mâu thuẫn về lợi ích giữa quần chúng nhân dân bị áp bức, bóc lột chống lại giai cấp thống trị, bóc lột","Cả a, b và c"],"c":2},
+{"id":33,"q":"Đấu tranh giai cấp xét đến cùng là nhằm mục đích gì?","a":["Phát triển sản xuất","Giải quyết mâu thuẫn giai cấp 32","Lật đổ sự thống trị của giai cấp thống trị","Giành lấy chính quyền nhà nước."],"c":1},
+{"id":34,"q":"Nguyên nhân khách quan của đấu tranh giai cấp là sản xuất đã trở nên lạc hậu","a":["Sự bóc lột nặng nề của giai cấp thống trị","Sự trì trệ của chính quyền nhà nước","Sự tiến bộ của khoa học kỹ thuật","Mâu thuẫn giữa sự phát triển của lực lượng sản xuất đạt trình độ cao, mang"],"c":3},
+{"id":35,"q":"Nhận định nào sau đây là sai?","a":["Đấu tranh giai cấp là động lực duy nhất của sự phát triển của xã hội có giai cấp","Đấu tranh giai cấp là một trong những động lực phát triển của xã hội có giai cấp","Cả a và b đều đúng","Cả a và b đều sai"],"c":1},
+{"id":36,"q":"Nhận định nào sau đây là sai?","a":["Đấu tranh giai cấp là động lực phát triển của mọi giai cấp.","Đấu tranh giai cấp chỉ là sự cản trở xã hội phát triển","Cả a và b đều đúng","Cả a và b đều sai"],"c":2},
+{"id":37,"q":"Nhận định nào sau đây là đúng theo quan điểm của chủ nghĩa duy vật","a":["Đấu tranh giai cấp là một trong những động lực quan trọng của sự phát triển của xã hội có giai cấp.","Đấu tranh giai cấp không phải là động lực duy nhất của sự phát triển của xã hội có giai cấp","Cả a và b đều đúng","Cả a và b đều sai"],"c":2},
+{"id":38,"q":"Trong quá trình phát triển của các phương thức sản xuất, giai cấp nào đại","a":["Giai cấp tiên tiến cách mạng","Giai cấp thống trị bóc lột","Cả a và b đều đúng","Cả a và b đều sai"],"c":0},
+{"id":39,"q":"Giai cấp nào thường bảo vệ quan hệ sản xuất đã lỗi thời?","a":["Giai cấp tiên tiến cách mạng","Giai cấp trung gian","Giai cấp thống trị bóc lột","Cả a, b và c đều sai"],"c":2},
+{"id":40,"q":"Vì sao giai cấp thống trị bóc lột lại bảo vệ quan hệ sản xuất đã lỗi thời?","a":["Lợi ích giai cấp thống trị gắn với quan hệ sản xuất lỗi thời","Vì không hiểu biết quy luật khách quan","Vì thói quen","Do cả a, b và c"],"c":0},
+{"id":41,"q":"Nhận định nào sau đây là đúng?","a":["Đấu tranh giai cấp góp phần xoá bỏ các thế lực phản động","Đấu tranh giai cấp cải tạo bản thân giai cấp cách mạng","Cả a và b đều đúng 33","Cả a và b đều sai"],"c":2},
+{"id":42,"q":"Cuộc đấu tranh giai cấp cuối cùng trong lịch sử loài người là cuộc đấu","a":["Cuộc đấu tranh giữa chủ nô và nô lệ","Cuộc đấu tranh giữa tư sản và địa chủ phong kiến","Cuộc đấu tranh giữa tư sản và vô sản","Cả a,b và c đều sai"],"c":2},
+{"id":43,"q":"Nhận định nào sau đây là đúng?","a":["Hiện nay ở Việt Nam còn giai cấp và còn đấu tranh giai cấp","Hiện nay ở Việt Nam không còn giai cấp và đấu tranh giai cấp nữa","Hiện nay ở Việt Nam còn giai cấp nhưng không còn đấu tranh giai cấp","Cả a, b và c"],"c":0},
+{"id":44,"q":"Nhận định nào sau đây trình bày đúng mục tiêu đấu tranh giai cấp ở Việt","a":["Đấu tranh giai cấp ở nước ta hiện nay diễn ra trong điều kiện mới.","Đấu tranh giai cấp ở nước ta hiện nay có nội dung và hình thức mới.","Đấu tranh giai cấp ở nước ta hiện nay nhằm củng cố phát triển chế độ xã hội nàn lạc hậu","Cả a, b và c"],"c":2},
+{"id":45,"q":"Đâu là nội dung cuộc đấu tranh giai cấp ở nước ta hiện nay?","a":["Khắc phục tình trạng nước nghèo kém phát triển","Giành chính quyền về tay nhân dân","Thực hiện công bằng xã hội, chống áp bức bất công","a và c"],"c":3},
+{"id":46,"q":"Đảng ta khẳng định động lực chủ yếu để phát triển đất nước hiện nay là","a":["Đại đoàn kết toàn dân trên cơ sở liên minh giữa công nhân với nông dân và trí thức do Đảng lãnh đạo","Kết hợp hài hoà lợi ích cá nhân, tập thể và xã hội","Phát huy mọi tiềm năng của các thành phần kinh tế của toàn xã hội","Cả a, b và c"],"c":3},
+{"id":47,"q":"Sự tồn tại các giai cấp đối kháng gắn với chế độ xã hội nào?","a":["Chế độ chiếm hữu nô lệ","chế độ phong kiến","Chế độ tư bản chủ nghĩa","Cả a, b và c"],"c":3},
+{"id":48,"q":"Trong số các dấu hiệu về sự khác nhau của giai cấp sự khác nhau nào có ý","a":["Sự khác nhau về quan hệ của họ (giai cấp) đối với việc sở hữu những tư liệu sản xuất của xã hội","Khác nhau về vai trò của họ trong tổ chức quản lý quá trình sản xuất, tổ chức quản lý lao động xã hội","Khác nhau về phương thức và quy mô thu nhập những sản phẩm lao động xã hội","Cả a,b và c đều sai"],"c":0},
+{"id":49,"q":"Trong xã hội có giai cấp, giai cấp nào thống trị xã hội?","a":["Giai cấp chiếm phần đông đảo nhất trong dân cư","Giai cấp có tư tưởng tiến bộ nhất trong xã hội 34","Giai cấp nắm tư liệu sản xuất của xã hội","Giai cấp nắm được tri thức khoa học"],"c":2},
+{"id":50,"q":"Nhân tố chi phối sự phân hoá của các tầng lớp trung gian là gì?","a":["Do ý chí của giai cấp thống trị","Do mong muốn chủ quan của tầng lớp trung gian","Do lợi ích của các tầng lớp trung gian","Cả a,b và c đều sai"],"c":2},
+{"id":51,"q":"Trong mỗi giai đoạn phát triển cụ thể của lịch sử, lực lượng tiêu biểu và","a":["Giai cấp có tư tưởng tiên tiến","Giai cấp chiếm số đông đảo nhất trong dân cư","Giai cấp nào có lợi ích gắn liền với phương thức sản xuất thồng trị","Cả a,b và c đều sai"],"c":2},
+{"id":52,"q":"Lợi ích của giai cấp thống trị và lợi ích dân tộc quan hệ với nhau như thế","a":["Luôn luôn thống nhất với nhau","Không phải khi nào cũng thống nhất với nhau","Có khi trái ngượi nhau","Phương án b và c"],"c":3},
+{"id":53,"q":"Trong xã hội còn giai cấp đối kháng và còn đấu tranh giai cấp, vấn đề","a":["Trên lập trường giai cấp nhất định","Trên sự thoả thuận của các giai cấp","Trên ý muốn chủ quan của một cá nhân nhất định","Cả a,b và c đều sai"],"c":0},
+{"id":54,"q":"Trong xã hội xã hội chủ nghĩa lợi ích giai cấp và lợi ích dân tộc về cơ bản","a":["Đối lập nhau.","Phù hợp với nhau","a và b đều sai","Cả a và b đều đúng"],"c":1},
+{"id":55,"q":"Nhận định nào sau đây đúng với quan điểm của CNDVBC?","a":["Ngày nay, ở nước ta mối quan hệ giữa các giai cấp và các tầng lớp chỉ là hợp tác, không còn đấu tranh","Ngày nay, ở nước ta mối quan hệ giữa các giai cấp và các tầng lớp chủ yếu là hợp tác và đấu tranh trong nội bộ nhân dân nhằm tăng cường đoàn kết","Cả a và b đều đúng","Cả a và b đều sai"],"c":1},
+{"id":56,"q":"Cơ sở khoa học tự nhiên của quan niệm “con người là sản phẩm của quá","a":["Học thuyết tế bào","Học thuyết di truyền","Học thuyết tiến hoá","Cả a,b và c đều đúng"],"c":2},
+{"id":57,"q":"Yếu tố nào trong các yếu tố sau đây có vai quyết định quá trình con người","a":["Lao động","Đạo đức 35","Sự thay đổi của điều kiện tự nhiên","Tình yêu"],"c":0},
+{"id":58,"q":"Xác định yếu tố căn bản nhất phân biệt con người với động vật?","a":["Tôn giáo","Ý thức","Đạo đức","Lao động"],"c":3},
+{"id":59,"q":"Tác giả của câu sau là ai? “Bản chất con người không phải là cái trừu","a":["C. Mác","Ph. Ăngghen","V.I. Lênin","Cả a,b và c đều đúng"],"c":0},
+{"id":60,"q":"Yếu tố nào trong các yếu tố sau là động lực chính của các cuộc cách mạng","a":["Tư tưởng tiên tiến","Vĩ nhân","Quần chúng nhân dân","Chiến tranh"],"c":2},
+{"id":61,"q":"Xác định phẩm chất chung cho cả lãnh tụ và vĩ nhân trong những phẩm","a":["Có năng lực tập hợp quần chúng nhân dân","Tri thức uyên bác","Tài năng kiệt xuất","Cả b và c"],"c":3},
+{"id":62,"q":"Trong lịch sử dân tộc, chế độ nào sau đây ra đời đầu tiên?","a":["Mẫu quyền","Phụ quyền","Đồng thời","Cả a, b và c"],"c":0},
+{"id":63,"q":"Mối quan hệ giữa mặt khách quan và mặt chủ quan của tiến trình lịch sử","a":["Hoạt động tự giác và hoạt động tự phát trong sự phát triển lịch sử","Tồn tại xã hội và ý thức xã hội, tất yếu và tự do, điều kiện khách quan và nhân tố chủ quan.","Cả a và b.","Cá nhân và xã hội, dân tộc và nhân loại"],"c":2},
+{"id":64,"q":"Quy luật xã hội nào giữ vai trò quyết định đối với sự vận động, phát triển","a":["Quy luật về sự phù hợp của QHSX với trình độ của LLSX","Quy luật tồn tại xã hội quyết định ý thức xã hội","Quy luật cơ sở hạ tầng quyết định kiến trúc thượng tầng","Quy luật đấu tranh giai cấp"],"c":0},
+{"id":65,"q":"Hình thức vận động nào là cao nhất?","a":["Vận động sinh học","Vận động xã hội","Vận động vật lý","Cả a và c"],"c":1},
+{"id":66,"q":"Nền tảng chung của các cơ cấu xã hội cụ thể là:","a":["Trình độ phát triển của LLSX","Mối quan hệ kinh tế giữa người và người 36","Kiến trúc thượng tầng của xã hội","Cả a và c"],"c":1},
+{"id":67,"q":"Nhận định nào sau đây là sai?","a":["Xã hội loài người phát triển không tuân theo quy luật","Xã hội loài người phát triển theo những quy luật khách quan","Xã hội loài người phát triển theo những quy luật phổ biến và những quy luật đặc thù","Cả a, b,c  đều đúng"],"c":0},
+{"id":68,"q":"Để tồn tại và phát triển...","a":["Xã hội loài người phải tuân theo những quy luật tự nhiên","Xã hội loài người phải tuân theo những quy luật xã hội","Xã hội loài người phải tuân theo những quy luật của tự nhiên và những quy luật của xã hội","Cả a, b,c  đều đúng"],"c":2},
+{"id":69,"q":"Hãy tìm câu đúng.","a":["Chỉ có quy luật tự nhiên mang tính khách quan.","Chỉ có quy luật xã hội mang tính khách quan.","Cả quy luật tự nhiên và quy luật xã hội mang tính khách quan","Cả a, b,c  đều đúng"],"c":2},
+{"id":70,"q":"Ý kiến nào sau đây là bất hợp lý?","a":["Thông qua lao động sản xuất, con người đã thu nhận các dòng vật chất, năng lượng từ môi trường tự nhiên.","Nền sản xuất xã hội là phương thức trao đổi chất giữa xã hội và tự nhiên","Cần sử dụng đến mức tối đa các nguồn tài nguyên thiên nhiên phục vụ cho nhu cầu của con người","Cả a, b,c  đều đúng"],"c":2},
+{"id":71,"q":"Câu nào sau đây không đúng?","a":["Lực lượng sản xuất là đặc trưng cơ bản của mỗi hình thức kinh tế xã hội","LLSX biểu hiện trình độ chinh phục tự nhiên của con người.","LLSX  là nguồn gốc sâu xa của những biến đổi to lớn trong xã hội","Cả a, b,c  đều đúng"],"c":0},
+{"id":72,"q":"Hãy chỉ ra câu sai trong các câu sau đây?","a":["Quy luật xã hội diễn ra thông qua hoạt động của con người","Quy luật xã hội thường biến dạng theo hoàn cảnh lịch sử trong từng giai đoạn, từng nước khác nhau.","Quy luật xã hội thường diễn ra trong một thời gian rất dài.","Quy luật xã hội phụ thuộc vào ý thức chủ quan của con người"],"c":3},
+{"id":73,"q":"Mệnh đề nào sau đây là sai?","a":["Mối quan hệ giữa xã hội và tự nhiên phụ thuộc vào trình độ phát triển xã hội.","Mối quan hệ giữa xã hội và tự nhiên phụ thuộc vào trình độ nhận thức và vận dụng quy luật trong hoạt động thực tiễn.","Mối quan hệ giữa xã hội và tự nhiên phụ thuộc vào đặc điểm văn hoá truyền thống của mỗi nước","Cả a, b,c  đều đúng"],"c":2},
+{"id":74,"q":"Quy luật quan hệ sản xuất phù hợp với trình độ của LLSX là quy luật:","a":["Hoạt động trong hiện thực khách quan","Hoạt động trong giới tự nhiên","Hoạt động trong xã hội 37","Cả a, b,c  đều đúng"],"c":2},
+{"id":75,"q":"Quy luật xã hội là quy luật:","a":["Không mang tính khách quan, vì nó thể hiện thông qua hoạt động có ý thức của con người","Mang tính khách quan và tính phổ biến","Chỉ biểu hiện trong một số hình thái kinh tế xã hội","Cả a, b,c  đều đúng"],"c":1},
+{"id":76,"q":"Quy luật đấu tranh giai cấp hoạt động trong xã hội nào?","a":["Công xã nguyên thuỷ","Trong xã hội phong kiến","Trong suốt quá trình lịch sử","Cả a và b"],"c":1},
+{"id":77,"q":"Câu nào sau đây là sai?","a":["Con người có thể sáng tạo ra quy luật","Con người có thể nhận thức quy luật","Con người có thể vận dụng quy luật","Cả a, b,c  đều đúng"],"c":0},
+{"id":78,"q":"Theo quan niệm duy vật lịch sử,...","a":["Tự do là nhận thức và hành động theo quy luật của tính tất yếu","Tự do là tuỳ ý lựa chọn những quy luật khách quan.","Tự do là theo đuổi những mục đích của mình trong quá trình chinh phục tự nhiên","Cả a, b,c  đều đúng"],"c":0},
+{"id":79,"q":"C.Mác viết: “Trong tính hiện thực của nó, bản chất con người là tổng hòa","a":["C.Mác bác bỏ mặt tự nhiên, sinh học trong đời sống con người.","C.Mác nhấn mạnh bản chất xã hội của con người.","Mác nhấn mạnh bản chất của con người mang tính trừu tượng.","Cả a, b và c"],"c":1},
+{"id":80,"q":"Theo quan niệm triết học mácxít, con người là gì?","a":["Là sản phẩm của lịch sử.","Là chủ thể của lịch sử.","Vừa là sản phẩm vừa là chủ thể của lịch sử.","Vừa là sản phẩm vừa là chủ thể của tự nhiên."],"c":2},
+{"id":81,"q":"Quan điểm coi “con người là chủ thể của lịch sử” được hiểu như thế nào?","a":["Con người là trung tâm của vũ trụ.","Con người là ông chủ, các loài sinh vật khác là nô lệ.","Con người nắm vững và vận dụng sáng tạo các quy luật  khách quan tác động vào tự nhiên, xã hội thúc đẩy nó phát triển phù hợp với nhu cầu của mình.","Con người có thể điều khiển lịch sử phát triển theo ý muốn tốt đẹp của riêng mình."],"c":2},
+{"id":82,"q":"Quần chúng nhân dân là ai?","a":["Là những người sản xuất ra của cải vật chất, những bộ phận dân cư chống lại giai cấp thống trị, những bộ phận thúc đẩy sự tiến bộ xã hội.","Chỉ những người thuộc giai cấp bị trị.","Quần chúng nhân dân là bộ phân có cùng chung lợi ích căn bản bao gồm 38","Chỉ những bộ phận nghèo khổ, thất học trong xã hội."],"c":2},
+{"id":83,"q":"Theo quan điểm triết học mácxít, vai trò quyết định lịch sử thuộc về ai trong trong xã hội.","a":["Các lãnh tụ, vĩ nhân kiệt xuất.","Quần chúng nhân dân.","Các giai cấp bị trị có tinh thần cách mạng triệt để nhất.","Các chính đảng cách mạng, có sự ủng hộ đông đảo của quần chúng nhân dân"],"c":1},
+{"id":84,"q":"Bổ sung để được một câu đúng theo quan điểm triết học mácxít: “Hình thái","a":["Ở từng giai đoạn lịch sử nhất định.","Cộng sản nguyên thuỷ, chiếm hữu nô lệ, phong kiến, tư bản chủ nghĩa và xã hội e. Có giai cấp đối kháng nhau.","Cả a,b và c  đều đúng."],"c":0},
+{"id":85,"q":"Về cấu trúc, hình thái kinh tế - xã hội bao gồm những bộ phận nào?","a":["Giai cấp cơ bản và giai cấp không cơ bản.","Lực lượng sản xuất, quan hệ sản xuất và kiến trúc thượng tầng.","Nhà nước, chính đảng, đoàn thể.","Các quan hệ sản xuất của xã hội."],"c":1},
+{"id":86,"q":"Lực lượng sản xuất có vai trò như thế nào trong một hình thái kinh tế - xã","a":["Nền tảng vật chất - kỹ thuật của xã hội.","Bảo vệ trật tự kinh tế của xã hội.","Quy định thái độ và hành vi của con người trong xã hội.","Quy định mọi quan hệ xã hội."],"c":0},
+{"id":87,"q":"Kiến trúc thượng tầng có vai trò gì trong một hình thái kinh tế - xã hội?","a":["Duy trì, bảo vệ cho cơ sở hạ tầng sinh ra nó.","Luôn kìm hãm sự phát triển cơ sở hạ tầng.","Luôn thúc đẩy sự phát triển cơ sở hạ tầng.","Cả a, b và c"],"c":0},
+{"id":88,"q":"Triết học Mác dựa trên điều gì để phân chia lịch sử của nhân loại?","a":["Hình thức nhà nước.","Hình thức tôn giáo.","Hình thái ý thức xã hội.","Hình thái kinh tế - xã hội."],"c":2},
+{"id":89,"q":"Nguồn gốc vận động và phát triển của hình thái kinh tế - xã hội là gì?","a":["Sự tăng lên không ngừng của năng xuất lao động.","Sự phát triển liên tục của lực lượng sản xuất.","Quần chúng nhân dân không ngừng nổi dậy đấu tranh chống các thế lực phản động trong xã hội.","Mâu thuẫn giai - tầng trong xã hội, sự thay đổi của quan hệ sản xuất."],"c":1},
+{"id":90,"q":"Sự vận động của hình thái kinh tế - xã hội bị chi phối bởi cái gì? 39","a":["Điều kiện, tình hình của thế giới; môi trường tự nhiên, truyền thống văn hóa.","Các quy luật khách quan của xã hội.","Ý muốn tốt đẹp của các vĩ nhân, lãnh tụ; khát vọng cháy bỏng của đông đảo quần chúng nhân dân nghèo khổ.","Cả a, b và c"],"c":3},
+{"id":91,"q":"Giá trị khoa học của học thuyết hình thái kinh tế - xã hội là gì?","a":["Giúp hiểu bản chất con người và xã hội loài người.","Chỉ ra quy luật vận động của tự nhiên và xã hội.","Giúp hiểu đầy đủ, cụ thể từng thời đại lịch sử, từng quốc gia dân tộc.","Chỉ ra sự phát triển của lịch sử nhân loại là một quá trình lịch sử - tự nhiên"],"c":3},
+{"id":92,"q":"Điều gì là nguyên nhân trực tiếp làm xuất hiện nhà nước?","a":["Sự thỏa thuận của mọi tầng lớp trong xã hội.","Những mâu thuẫn giai cấp không thể điều hòa được.","Lý tưởng cao đẹp của các lãnh tụ cách mạng kết hợp các giai tầng lại với nhau.","Do sự xung đột của các thế lực tôn giáo trong xã hội."],"c":1},
+{"id":93,"q":"Vấn đề cơ bản đòi hỏi mọi cuộc cách mạng xã hội phải giải quyết là gì?","a":["Giành chính quyền.","Xây dựng lực lượng vũ trang.","Cải cách hiệu quả chính quyền cũ.","Tiêu diệt hoàn toàn giai cấp thống trị phản cách mạng"],"c":0},
+{"id":94,"q":"Giai cấp (GC) nào có thể trở thành GC lãnh đạo cách mạng xã hội?","a":["GC có mâu thuẫn với giai cấp thống trị và có những lãnh tụ kiệt xuất.","GC đại biểu cho phương thức sản xuất mới.","GC có mâu thuẫn gay gắt với giai cấp thống trị.","GC cấp vô sản."],"c":1},
+{"id":95,"q":"Cách mạng xã hội chỉ có thể giành thắng lợi khi nào?","a":["Khi có lãnh tự kiệt xuất lãnh đạo.","Khi tình thế và thời cơ cách mạng xuất hiện đầy đủ.","Khi xuất hiện điều kiện khách quan và sự chín muồi của nhân tố chủ quan.","Khi nhân tố chủ quan chín muồi, lãnh tụ kiệt xuất xuất hiện."],"c":1},
+{"id":96,"q":"Yếu tố nào không thuộc về ý thức xã hội?","a":["Quan điểm, tư tưởng của con người.","Truyền thống văn hóa của một dân tộc.","Môi trường sống của con người.","Tình cảm, tâm trạng của các giai - tầng."],"c":2},
+{"id":97,"q":"Theo quan điểm triết học mácxít, luận điểm nào đúng?","a":["Tồn tại xã hội và ý thức xã hội đều bị chi phối bởi Thượng đế.","Ý thức xã hội quyết định tồn tại xã hội.","Tồn tại xã hội và ý thức xã hội không ảnh hưởng gì đến nhau.","Cả a, b và c  đều sai."],"c":3},
+{"id":98,"q":"Theo quan điểm triết học mácxít, luận điểm nào sai?","a":["Ý thức xã hội có tính độc lập tương đối.","Ý thức xã hội quyết định tồn tại xã hội.","Ý thức xã hội phản ánh tồn tại xã hội.","Không phải bất cứ tư tưởng, quan niệm lý luận nào cũng phản ánh rõ ràng và trực 40"],"c":1}
+]
+        };
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let selectedChapter = null;
+        const chapterBtns = document.querySelectorAll('.chapter-btn');
+        const startBtn = document.getElementById('startBtn');
+
+        chapterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                chapterBtns.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedChapter = this.getAttribute('data-chapter');
+                startBtn.disabled = false;
+                startBtn.textContent = 'Bắt đầu làm bài';
+                
+                console.log('Selected chapter:', selectedChapter);
+            });
+        });
+
+        startBtn.addEventListener('click', startQuiz);
+
+        function startQuiz() {
+
+            if (selectedChapter === 'all') {
+                currentQuestions = [...questionsData[1], ...questionsData[2], ...questionsData[3]];
+            } else {
+                currentQuestions = [...questionsData[parseInt(selectedChapter)]];
+            }
+            currentQuestions.sort(() => Math.random() - 0.5);
+            
+            currentIndex = 0;
+            score = 0;
+
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('header').style.display = 'flex';
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('quizScreen').style.display = 'flex';
+
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = currentQuestions[currentIndex];
+            
+            document.getElementById('questionCount').textContent = `${currentIndex + 1}/${currentQuestions.length}`;
+            document.getElementById('scoreBadge').textContent = `${score}đ`;
+            document.getElementById('questionText').textContent = question.q;
+            
+            const answersGrid = document.getElementById('answersGrid');
+            answersGrid.innerHTML = '';
+            
+            const labels = ['A', 'B', 'C', 'D'];
+            question.a.forEach((answer, index) => {
+                const div = document.createElement('div');
+                div.className = 'answer-option';
+                div.innerHTML = `
+                    <div class="answer-label">${labels[index]}</div>
+                    <div class="answer-text">${answer}</div>
+                `;
+                div.addEventListener('click', () => selectAnswer(index));
+                answersGrid.appendChild(div);
+            });
+
+            document.getElementById('bottomBar').style.display = 'none';
+            updateProgress();
+        }
+
+        function selectAnswer(selectedIndex) {
+            const question = currentQuestions[currentIndex];
+            const options = document.querySelectorAll('.answer-option');
+            
+            options.forEach(opt => opt.classList.add('disabled'));
+            
+            if (selectedIndex === question.c) {
+                options[selectedIndex].classList.add('correct');
+                score += 10;
+                document.getElementById('scoreBadge').textContent = `${score}đ`;
+            } else {
+                options[selectedIndex].classList.add('wrong');
+                options[question.c].classList.add('correct');
+            }
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < currentQuestions.length) {
+                    document.getElementById('questionContainer').scrollTop = 0;
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1500);
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                document.getElementById('questionContainer').scrollTop = 0;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        function updateProgress() {
+            const progress = ((currentIndex + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function showResults() {
+            const total = currentQuestions.length;
+            const correct = score / 10;
+            const wrong = total - correct;
+            const percentage = Math.round((correct / total) * 100);
+
+            document.getElementById('header').style.display = 'none';
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('quizScreen').style.display = 'none';
+            document.getElementById('bottomBar').style.display = 'none';
+            document.getElementById('resultScreen').style.display = 'flex';
+
+            document.getElementById('resultScore').textContent = percentage + '%';
+            document.getElementById('totalQ').textContent = total;
+            document.getElementById('correctQ').textContent = correct;
+            document.getElementById('wrongQ').textContent = wrong;
+
+            let icon = '🏆', message = '';
+            if (percentage >= 90) {
+                icon = '🏆';
+                message = 'Xuất sắc!';
+            } else if (percentage >= 70) {
+                icon = '🎉';
+                message = 'Tốt lắm!';
+            } else if (percentage >= 50) {
+                icon = '👍';
+                message = 'Khá tốt!';
+            } else {
+                icon = '💪';
+                message = 'Cố gắng lên!';
+            }
+
+            document.getElementById('resultIcon').textContent = icon;
+            document.getElementById('resultMessage').textContent = message;
+        }
+
+        window.resetQuiz = function() {
+            document.getElementById('resultScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            document.getElementById('progressFill').style.width = '0%';
+            document.querySelectorAll('.chapter-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').textContent = 'Chọn chương để bắt đầu';
+            selectedChapter = null;
+        }
+    </script>
+</body>
+</html>
