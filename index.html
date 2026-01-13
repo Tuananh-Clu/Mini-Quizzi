@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Triết Học Mác - Lênin</title>
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
     <style>
         * {
             margin: 0;
@@ -372,6 +376,7 @@
     </style>
 </head>
 <body>
+    
     <div class="app-container">
         <!-- Header -->
         <div class="header" id="header" style="display: none;">
@@ -451,6 +456,8 @@
     </div>
 
     <script>
+        import { Analytics } from "@vercel/analytics/next"
+        <Analytics />
         const questionsData = {
             1: [
 {"id":1,"q":"Triết học ra đời do đâu?","a":["Do ý muốn chủ quan của con người","Do lý tính thế giới quy định.","Do nhu cầu của thực tiễn.","Cả a, b và c"],"c":2},
