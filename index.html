@@ -830,7 +830,7 @@
         function startQuiz() {
 
             if (selectedChapter === 'all') {
-                currentQuestions = [...questionsData[1], ...questionsData[2], ...questionsData[3]];
+                currentQuestions = [...questionsData[1], ...questionsData[2], ...questionsData[3],...questionsData[4]];
             } else {
                 currentQuestions = [...questionsData[parseInt(selectedChapter)]];
             }
